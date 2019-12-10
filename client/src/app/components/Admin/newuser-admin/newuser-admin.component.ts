@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
@@ -20,6 +20,14 @@ export class NewuserAdminComponent implements OnInit {
   form_config: FormGroup;
   //validacion
   submit_config = false;
+
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
@@ -67,7 +75,7 @@ export class NewuserAdminComponent implements OnInit {
 
   //Obtiene el último miembroID de la tabla miembros
   obtener_ultimo_miembro() {
-    var response = this.http.get(this.url + "ultimoMiembro");
+    var response = this.http.get(this.url + "ultimoMiembro",this.httpOptions);
     response.subscribe((resultado: number) => {
       this.form_config.get('usuarioID').setValue(resultado + 1);
       this.form_config.get('miembroID').setValue(resultado + 1);
@@ -98,7 +106,7 @@ export class NewuserAdminComponent implements OnInit {
       tipo: "Usuario",
       sede: this.form_config.value.sede
     }
-    this.http.post(this.url + 'miembro', this.datos_miembro).subscribe(data => {
+    this.http.post(this.url + 'miembro', this.datos_miembro,this.httpOptions).subscribe(data => {
       this.agregar_usuario();
       spinner.setAttribute("hidden", "true");
     },
@@ -108,7 +116,7 @@ export class NewuserAdminComponent implements OnInit {
   }
 
   agregar_usuario() {
-    this.http.post(this.url + 'Usuarios', this.form_config.value).subscribe(data => {
+    this.http.post(this.url + 'Usuarios', this.form_config.value,this.httpOptions).subscribe(data => {
       alert('Se a guardado el usuario correctamente. ID: ' + this.form_config.value.usuarioID);
       this.form_config.reset();
       this.obtener_ultimo_miembro();

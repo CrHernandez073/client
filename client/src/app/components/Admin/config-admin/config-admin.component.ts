@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
  
 @Component({
@@ -18,6 +18,13 @@ tipo: number=0;
   //validacion
 	submit_config= false;
 
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
@@ -67,7 +74,7 @@ tipo: number=0;
   
      //select mediante el id
      console.log(this.form_config.value.miembroID);
-      var response = this.http.get(this.url + "Usuario/id?id=" + this.form_config.value.miembroID);
+      var response = this.http.get(this.url + "Usuario/id?id=" + this.form_config.value.miembroID,this.httpOptions);
      response.subscribe((data: any[]) => {
        this.resultado = data;
        console.log(this.resultado);
@@ -109,7 +116,7 @@ tipo: number=0;
     spinner_config.removeAttribute("hidden");
 
     //Update mediante el id y los campos de agregar
-    this.http.put(this.url + "Usuarios/" + localStorage.getItem("miembroID"), this.form_config.value).subscribe(data => {
+    this.http.put(this.url + "Usuarios/" + localStorage.getItem("miembroID"), this.form_config.value,this.httpOptions).subscribe(data => {
       spinner_config.setAttribute("hidden", "true");
       alert("Usuario Modificado Correctamente.");
     },

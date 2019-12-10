@@ -1,6 +1,6 @@
 import { Component, OnInit, Output, EventEmitter, OnChanges, SimpleChanges, Input } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient ,HttpHeaders} from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
 
@@ -53,6 +53,14 @@ cambiar_valor_Padre(){
   mensaje: string;
   tipo:any;
 
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
+
   url = "https://api-remota.conveyor.cloud/api/";
 
   constructor(private http: HttpClient, private formBuilder: FormBuilder) { }
@@ -100,7 +108,7 @@ cambiar_valor_Padre(){
   }
 
   traer_donante(){
-    var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID);
+    var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
         this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
@@ -137,7 +145,7 @@ cambiar_valor_Padre(){
     else {
       spinner_buscar_telefono.removeAttribute("hidden");
       //select mediante el id
-      var response = this.http.get(this.url + "Telefonodonante/" + this.form_buscar.value.buscarID);
+      var response = this.http.get(this.url + "Telefonodonante/" + this.form_buscar.value.buscarID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
   
@@ -180,7 +188,7 @@ cambiar_valor_Padre(){
     spinner_agregar_telefono.removeAttribute("hidden");
 
     //Update mediante el id y los campos de agregar
-    this.http.put(this.url + "Telefonodonante/" + this.form_buscar.value.buscarID, this.form_agregar.value).subscribe(data => {
+    this.http.put(this.url + "Telefonodonante/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
       spinner_agregar_telefono.setAttribute("hidden", "true");
       
       this.mostrar_alert("Telefono Moficado.", 'primary', 5000, null);

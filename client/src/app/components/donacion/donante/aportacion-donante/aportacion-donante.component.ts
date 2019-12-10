@@ -1,6 +1,6 @@
 import { Component, OnInit, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
 
@@ -37,6 +37,14 @@ export class AportacionDonanteComponent implements OnInit {
   visible: boolean=false;
   mensaje: string;
   tipo:any;
+
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
@@ -97,7 +105,7 @@ export class AportacionDonanteComponent implements OnInit {
 		this.tipo = null;
   }
   traer_donante(){
-    var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_agregar.value.donacionID);
+    var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_agregar.value.donacionID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
         this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
@@ -130,7 +138,7 @@ export class AportacionDonanteComponent implements OnInit {
   }
 
   llenar(){
-    var response = this.http.get(this.url + "FormaDonacion/EspecificaID?id="+this.form_buscar.value.buscarID);
+    var response = this.http.get(this.url + "FormaDonacion/EspecificaID?id="+this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayFdonacion = data;
       this.form_agregar.get('donacionID').setValue(this.form_buscar.value.buscarID);
@@ -150,7 +158,7 @@ export class AportacionDonanteComponent implements OnInit {
     }
     else {
       //select mediante el id
-      var response = this.http.get(this.url + "FormaDonacion/" + id);
+      var response = this.http.get(this.url + "FormaDonacion/" + id,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
         //transformar fecha formato
@@ -194,7 +202,7 @@ export class AportacionDonanteComponent implements OnInit {
     var spinner_agregar_contacto = document.getElementById("spinner_agregar_contacto");
     spinner_agregar_contacto.removeAttribute("hidden");
     //Donacion
-    this.http.post(this.url + "FormaDonacion", this.form_agregar.value).subscribe(data => {
+    this.http.post(this.url + "FormaDonacion", this.form_agregar.value,this.httpOptions).subscribe(data => {
       spinner_agregar_contacto.setAttribute("hidden", "true");
       this.llenar();
       this.mostrar_alert("Se a registrado la donacion correctamente.", 'success', 5000, null);
@@ -215,7 +223,7 @@ export class AportacionDonanteComponent implements OnInit {
     var spinner_agregar_contacto = document.getElementById("spinner_agregar_contacto");
     spinner_agregar_contacto.removeAttribute("hidden");
     //Update mediante el id y los campos de agregar
-    this.http.put(this.url + "FormaDonacion/" + this.form_agregar.value.formadonacionID, this.form_agregar.value).subscribe(data => {
+    this.http.put(this.url + "FormaDonacion/" + this.form_agregar.value.formadonacionID, this.form_agregar.value,this.httpOptions).subscribe(data => {
       spinner_agregar_contacto.setAttribute("hidden", "true");      
       this.mostrar_alert("Donacion Modificada.", 'primary', 5000, null);
       this.llenar();
@@ -268,7 +276,7 @@ export class AportacionDonanteComponent implements OnInit {
   }
 
   get_nuevo_Fdonacion() {
-    var response = this.http.get(this.url + "ultimoFormaDonacion");
+    var response = this.http.get(this.url + "ultimoFormaDonacion",this.httpOptions);
     response.subscribe((resultado: number) => {
       this.form_agregar.get('formadonacionID').setValue(resultado + 1);
     },
@@ -277,7 +285,7 @@ export class AportacionDonanteComponent implements OnInit {
       });
   }
   get_Fdonacion() {
-    var response = this.http.get(this.url + "Aportacion/");
+    var response = this.http.get(this.url + "Aportacion/",this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayFdonacion = data;
       console.log(this.arrayFdonacion);

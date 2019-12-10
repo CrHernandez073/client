@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
@@ -21,6 +21,14 @@ export class ModifuserAdminComponent implements OnInit {
   datos_miembro: any;
   //validacion
   submit_info = false;
+
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
@@ -71,9 +79,9 @@ export class ModifuserAdminComponent implements OnInit {
     //select mediante el id
     var response = this.http.get(this.url
       + "usuario/buscador?Rsede=" + this.form_config.value.sede
-      + "&rmiembroid=0&Rstatus=false&Rnacionalidad=null&Restado=null&Rnombre=null&Rpuesto=null"
-    );
+      + "&rmiembroid=0&Rstatus=false&Rnacionalidad=null&Restado=null&Rnombre=null&Rpuesto=null", this.httpOptions);
     response.subscribe((data: any[]) => {
+      console.log(data);
       this.resultado = data;
     },
       error => {
@@ -87,7 +95,7 @@ export class ModifuserAdminComponent implements OnInit {
     var response = this.http.get(this.url
       + "usuario/buscador?Rsede=" + this.form_config.value.sede
       + "&rmiembroid=" + id
-      + "&Rstatus=false&Rnacionalidad=null&Restado=null&Rnombre=null&Rpuesto=null"
+      + "&Rstatus=false&Rnacionalidad=null&Restado=null&Rnombre=null&Rpuesto=null", this.httpOptions
     );
     response.subscribe((data: any[]) => {
       this.arreglo = data;
@@ -140,7 +148,7 @@ export class ModifuserAdminComponent implements OnInit {
       tipo: "Usuario",
       sede: this.form_config.value.sede
     }
-    this.http.put(this.url + "Miembro/" + this.form_config.value.miembroID, this.datos_miembro).subscribe(data => {
+    this.http.put(this.url + "Miembro/" + this.form_config.value.miembroID, this.datos_miembro, this.httpOptions).subscribe(data => {
     },
       error => {
         console.log("Error", error);
@@ -148,7 +156,7 @@ export class ModifuserAdminComponent implements OnInit {
   }
 
   modificar_usuario() {
-    this.http.put(this.url + "Usuarios/" + this.form_config.value.miembroID, this.form_config.value).subscribe(data => {
+    this.http.put(this.url + "Usuarios/" + this.form_config.value.miembroID, this.form_config.value, this.httpOptions).subscribe(data => {
 
     },
       error => {

@@ -6,7 +6,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { autoTable as AutoTable } from 'jspdf-autotable';
 import { ExcelService } from '../../../excel.service';
@@ -39,6 +39,14 @@ export class RpDonacionComponent implements OnInit {
 
   //validacion
   submit_agregar = false;
+
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
@@ -258,7 +266,7 @@ export class RpDonacionComponent implements OnInit {
       + "&RPais=" + this.form_report.value.pais
       + "&REstado=" + this.form_report.value.estado
       + "&RMunicipio=" + this.form_report.value.municipio
-      + "&Rsede="+this.form_report.value.sede
+      + "&Rsede="+this.form_report.value.sede,this.httpOptions
     );
 
 
@@ -274,7 +282,7 @@ export class RpDonacionComponent implements OnInit {
   }
 
   get_Lider() {
-    var response = this.http.get(this.url + "Lider/");
+    var response = this.http.get(this.url + "Lider/",this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayLideres = data;
     },
@@ -283,7 +291,7 @@ export class RpDonacionComponent implements OnInit {
       });
   }
   get_Campana() {
-    var response = this.http.get(this.url + "Campana/");
+    var response = this.http.get(this.url + "Campana/",this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayCampanas = (data);
     },
@@ -292,8 +300,7 @@ export class RpDonacionComponent implements OnInit {
       });
   }
   get_Eventoe() {
-    var response = this.http.get(this.url
-      + "Eventoe/");
+    var response = this.http.get(this.url + "Eventoe/",this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayEventos = (data);
     },

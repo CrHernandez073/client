@@ -1,6 +1,6 @@
 import { Component, OnInit, Output, EventEmitter, OnChanges, SimpleChanges, Input } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
 
@@ -59,6 +59,14 @@ export class FormaDonanteComponent implements OnInit, OnChanges {
   mensaje: string;
   tipo:any;
 
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+  };
+  
   url = "https://api-remota.conveyor.cloud/api/";
 
   constructor(private http: HttpClient, private formBuilder: FormBuilder) {
@@ -102,7 +110,7 @@ export class FormaDonanteComponent implements OnInit, OnChanges {
   }
 
   traer_donante(){
-    var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID);
+    var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
         this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
@@ -157,7 +165,7 @@ export class FormaDonanteComponent implements OnInit, OnChanges {
   buscar_fdonante(id: any) {
     this.submit_buscar = true;
           //select mediante el id
-      var response = this.http.get(this.url + "FormaDonacion/" + id);
+      var response = this.http.get(this.url + "FormaDonacion/" + id,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
         //transformar fecha formato
@@ -206,7 +214,7 @@ export class FormaDonanteComponent implements OnInit, OnChanges {
     var spinner_agregar_contacto = document.getElementById("spinner_agregar_contacto");
     spinner_agregar_contacto.removeAttribute("hidden");
     //Donacion
-    this.http.post(this.url + "FormaDonacion", this.form_agregar.value).subscribe(data => {
+    this.http.post(this.url + "FormaDonacion", this.form_agregar.value,this.httpOptions).subscribe(data => {
       spinner_agregar_contacto.setAttribute("hidden", "true");
       this.get_nuevo_Fdonacion();
       this.get_Fdonacion();
@@ -230,7 +238,7 @@ export class FormaDonanteComponent implements OnInit, OnChanges {
     spinner_agregar_donacion.removeAttribute("hidden");
 
     //Update mediante el id y los campos de agregar
-    this.http.put(this.url + "FormaDonacion/" + this.form_agregar.value.formadonacionID, this.form_agregar.value).subscribe(data => {
+    this.http.put(this.url + "FormaDonacion/" + this.form_agregar.value.formadonacionID, this.form_agregar.value,this.httpOptions).subscribe(data => {
       spinner_agregar_donacion.setAttribute("hidden", "true");
       
       this.mostrar_alert("Modificacion Exitosa.", 'primary', 5000, null);
@@ -275,7 +283,7 @@ export class FormaDonanteComponent implements OnInit, OnChanges {
 
   //Obtener nuevo Lider
   get_nuevo_Fdonacion() {
-    var response = this.http.get(this.url + "ultimoFormaDonacion");
+    var response = this.http.get(this.url + "ultimoFormaDonacion",this.httpOptions);
     response.subscribe((resultado: number) => {
       this.form_agregar.get('formadonacionID').setValue(resultado + 1);
     },
@@ -286,7 +294,7 @@ export class FormaDonanteComponent implements OnInit, OnChanges {
 
   //List Lider
   get_Fdonacion() {
-    var response = this.http.get(this.url + "FormaDonacion/EspecificaID?id="+this.form_agregar.value.donacionID);
+    var response = this.http.get(this.url + "FormaDonacion/EspecificaID?id="+this.form_agregar.value.donacionID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayFdonacion = data;
       this.mostrar_alert("Accion Exitosa.", 'primary', 5000, null);

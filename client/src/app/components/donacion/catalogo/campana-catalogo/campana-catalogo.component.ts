@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
 
@@ -28,6 +28,13 @@ agregar_o_modificar: string = 'nuevo';
   submit_buscar = false;
 	submit_agregar= false;
 
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
@@ -80,7 +87,7 @@ agregar_o_modificar: string = 'nuevo';
 
      spinner_buscar_campana.removeAttribute("hidden");
      //select mediante el id
-     var response = this.http.get(this.url + "Campana/" + this.form_buscar.value.buscarID);
+     var response = this.http.get(this.url + "Campana/" + this.form_buscar.value.buscarID,this.httpOptions);
      response.subscribe((data: any[]) => {
        this.resultado = data;
        //transformar fecha formato
@@ -127,7 +134,7 @@ agregar_o_modificar: string = 'nuevo';
 
   //Obtener nuevo Lider
   get_nuevo_campana() {
-    var response = this.http.get(this.url + "ultimoCampana");
+    var response = this.http.get(this.url + "ultimoCampana",this.httpOptions);
     response.subscribe((resultado: number) => {
       this.form_agregar.get('campanaID').setValue(resultado + 1);
     },
@@ -137,7 +144,7 @@ agregar_o_modificar: string = 'nuevo';
   }
   //List Lider
   get_Campana() {
-    var response = this.http.get(this.url + "campana/sede?Rsede="+localStorage.getItem('sede'));
+    var response = this.http.get(this.url + "campana/sede?Rsede="+localStorage.getItem('sede'),this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayCampana = data;
     },
@@ -150,7 +157,7 @@ agregar_o_modificar: string = 'nuevo';
 	//Spiner
   var spinner_agregar_campana = document.getElementById("spinner_agregar_campana");
   spinner_agregar_campana.removeAttribute("hidden");
-  this.http.post(this.url + "Campana", this.form_agregar.value).subscribe(data => {
+  this.http.post(this.url + "Campana", this.form_agregar.value,this.httpOptions).subscribe(data => {
     spinner_agregar_campana.setAttribute("hidden", "true");
     alert("Campaña Guardado");
     this.clean_Agregar();
@@ -170,7 +177,7 @@ agregar_o_modificar: string = 'nuevo';
     spinner_agregar_campana.removeAttribute("hidden");
 
     //Update mediante el id y los campos de agregar
-    this.http.put(this.url + "Campana/" + this.form_buscar.value.buscarID, this.form_agregar.value).subscribe(data => {
+    this.http.put(this.url + "Campana/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
       spinner_agregar_campana.setAttribute("hidden", "true");
       alert("Campaña Modificado");
       this.get_Campana();
@@ -222,7 +229,7 @@ agregar_o_modificar: string = 'nuevo';
       return;
     }
     else {
-      var response = this.http.delete(this.url + "Campana/" + id);
+      var response = this.http.delete(this.url + "Campana/" + id,this.httpOptions);
       response.subscribe((data: any[]) => {
         alert("Se a eliminado la Campaña: " + id);
         this.get_Campana();

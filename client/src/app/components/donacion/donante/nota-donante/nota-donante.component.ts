@@ -1,5 +1,5 @@
 import { Component, OnInit, Output, EventEmitter, OnChanges, SimpleChanges, Input } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
@@ -60,6 +60,13 @@ submit_agregar= false;
  mensaje: string;
  tipo:any;
 
+ httpOptions = {
+  headers: new HttpHeaders({
+    'Content-Type':  'application/json',
+    'miembroID': localStorage.getItem('miembroID'),
+    'Authorization': localStorage.getItem('Authorization')
+  })
+};
 url = "https://api-remota.conveyor.cloud/api/";
 
 constructor(private http : HttpClient, private formBuilder: FormBuilder) { }
@@ -108,7 +115,7 @@ cerrar_alert(){
   this.tipo = null;
 }
 traer_donante(){
-  var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID);
+  var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
       this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
@@ -146,7 +153,7 @@ opcion_nota() {
 
 buscar_nota(id: any) {
       //select mediante el id
-      var response = this.http.get(this.url + "NotasDonantes/" + id);
+      var response = this.http.get(this.url + "NotasDonantes/" + id,this.httpOptions);
       response.subscribe((data: any[]) => { 
         this.resultado = data;
         //transformar fecha formato
@@ -177,7 +184,7 @@ agregar_nota() {
   var spinner_agregar_nota = document.getElementById("spinner_agregar_nota");
   spinner_agregar_nota.removeAttribute("hidden");
   //Donacion
-  this.http.post(this.url + "NotasDonantes", this.form_agregar.value).subscribe(data => {
+  this.http.post(this.url + "NotasDonantes", this.form_agregar.value,this.httpOptions).subscribe(data => {
     alert("Se a registrado la Nota correctamente. ");
 
     spinner_agregar_nota.setAttribute("hidden", "true");
@@ -198,7 +205,7 @@ modificar_nota() {
   var spinner_agregar_nota = document.getElementById("spinner_agregar_nota");
   spinner_agregar_nota.removeAttribute("hidden");
 
-  this.http.put(this.url + "NotasDonantes/" + this.form_agregar.value.notaID, this.form_agregar.value).subscribe(data => {
+  this.http.put(this.url + "NotasDonantes/" + this.form_agregar.value.notaID, this.form_agregar.value,this.httpOptions).subscribe(data => {
     spinner_agregar_nota.setAttribute("hidden", "true");
     
     this.mostrar_alert("Modificacion Exitosa.", 'primary', 5000, null);
@@ -242,7 +249,7 @@ radioChange(event: any){
 }
 //hacer metodo get ultimo y traer por id
 get_nuevo_nota(){
-  var response = this.http.get(this.url + "ultimoNota");
+  var response = this.http.get(this.url + "ultimoNota",this.httpOptions);
   response.subscribe((resultado: number) => {
     this.form_agregar.get('notaID').setValue(resultado + 1);
   },
@@ -252,7 +259,7 @@ get_nuevo_nota(){
 }
 
 get_nota(){
-  var response = this.http.get(this.url + "Nota/notaespecifica?id="+this.form_buscar.value.buscarID);
+  var response = this.http.get(this.url + "Nota/notaespecifica?id="+this.form_buscar.value.buscarID,this.httpOptions);
   response.subscribe((data: any[]) => {
     this.arraynota = data;
     this.mostrar_alert("Busqueda existosa.", 'primary', 5000, null);

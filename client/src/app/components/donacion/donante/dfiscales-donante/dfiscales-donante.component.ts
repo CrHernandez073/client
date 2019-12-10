@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
@@ -46,6 +46,14 @@ submit_agregar = false;
 visible: boolean=false;
 mensaje: string;
 tipo:any;
+
+httpOptions = {
+  headers: new HttpHeaders({
+    'Content-Type':  'application/json',
+    'miembroID': localStorage.getItem('miembroID'),
+    'Authorization': localStorage.getItem('Authorization')
+  })
+};
 
 url = "https://api-remota.conveyor.cloud/api/";
 
@@ -105,7 +113,7 @@ cerrar_alert(){
 }
 
 traer_donante(){
-  var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID);
+  var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
       this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
@@ -126,7 +134,7 @@ buscar_dfiscales() {
   else {
     spinner_buscar_dfiscales.removeAttribute("hidden");
     //select mediante el id
-    var response = this.http.get(this.url + "DFiscal/" + this.form_buscar.value.buscarID);
+    var response = this.http.get(this.url + "DFiscal/" + this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
 
@@ -167,7 +175,7 @@ modificar_dfiscales() {
   spinner_agregar_dfiscales.removeAttribute("hidden");
 
   //Update mediante el id y los campos de agregar
-  this.http.put(this.url + "DFiscal/" + this.form_buscar.value.buscarID, this.form_agregar.value).subscribe(data => {
+  this.http.put(this.url + "DFiscal/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
     spinner_agregar_dfiscales.setAttribute("hidden", "true");
     
     this.mostrar_alert("Datos Fiscales modificados.", 'primary', 5000, null);

@@ -3,7 +3,7 @@ import { OptionsInput } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import interactionPlugin from '@fullcalendar/interaction';
 import { MyserviceService } from '../../../myservice.service';
 import { Router } from '@angular/router';
@@ -38,6 +38,14 @@ export class AgendaAdminComponent implements OnInit {
   visible: boolean=false;
   mensaje: string;
   tipo:any;
+
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   //Usuario logueado  
   miembroID= localStorage.getItem("miembroID");
@@ -99,7 +107,7 @@ get f_B() {
 
   buscar_agenda() {
     //select mediante el id
-    var response = this.http.get(this.url + "Agenda/" + this.form_buscar.value.buscarID);
+    var response = this.http.get(this.url + "Agenda/" + this.form_buscar.value.buscarID, this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
       //transformar fecha formato
@@ -131,7 +139,7 @@ get f_B() {
 
   modif_agenda(id:any) {
     //select mediante el id
-    var response = this.http.get(this.url + "Agenda/" + id);
+    var response = this.http.get(this.url + "Agenda/" + id, this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
       //transformar fecha formato
@@ -168,7 +176,7 @@ get f_B() {
       return;
     }
     else {
-      var response = this.http.delete(this.url + "Agenda/" + id);
+      var response = this.http.delete(this.url + "Agenda/" + id, this.httpOptions);
       response.subscribe((data: any[]) => {        
       this.mostrar_alert("Se a eliminado el Evento: " + id, 'primary', 15000, null);
         this.get_mieventos();
@@ -211,7 +219,7 @@ get f_B() {
     this.get_nuevo_agenda();
   
     //verificar la fecha 
-    this.http.post(this.url + "Agenda", this.form_agregar.value).subscribe(data => {
+    this.http.post(this.url + "Agenda", this.form_agregar.value, this.httpOptions).subscribe(data => {
       alert("Se a registrado el Evento correctamente. ");
       this.clean_Agregar();
       this.form_agregar.get('usuarioID').setValue(this.miembroID);
@@ -227,7 +235,7 @@ get f_B() {
       });
   }
   modificar_agenda() {
-    this.http.put(this.url + "Agenda/" + this.form_agregar.value.agendaID, this.form_agregar.value).subscribe(data => {
+    this.http.put(this.url + "Agenda/" + this.form_agregar.value.agendaID, this.form_agregar.value, this.httpOptions).subscribe(data => {
       alert("Evento Modificado");
       this.get_mieventos();
       this.get_todoseventos();
@@ -257,7 +265,7 @@ get f_B() {
   }
 
   get_nuevo_agenda() {
-    var response = this.http.get(this.url + "ultimo_agenda");
+    var response = this.http.get(this.url + "ultimo_agenda", this.httpOptions);
     response.subscribe((resultado: number) => {
       this.form_agregar.get('agendaID').setValue(resultado + 1);
     },
@@ -271,7 +279,7 @@ get f_B() {
 
 //mis eventos
   get_mieventos() {
-    var response = this.http.get(this.url + "Registro_agenda?id=" + this.form_agregar.value.usuarioID);
+    var response = this.http.get(this.url + "Registro_agenda?id=" + this.form_agregar.value.usuarioID, this.httpOptions);
     response.subscribe((data: any[]) => {
       this.mievento = data;
     },
@@ -282,7 +290,7 @@ get f_B() {
 
   //eventos x sede
   get_todoseventos() {
-    var response = this.http.get(this.url + "Eventos?Rsede="+this.form_agregar.value.sede);
+    var response = this.http.get(this.url + "Eventos?Rsede="+this.form_agregar.value.sede, this.httpOptions);
     response.subscribe((data: any[]) => {
       this.todoseventos = data;
     },
@@ -292,7 +300,7 @@ get f_B() {
   }
   //toda las agendas order(sede)
   get_all_agenda() {
-    var response = this.http.get(this.url + "all/agenda");
+    var response = this.http.get(this.url + "all/agenda", this.httpOptions);
     response.subscribe((data: any[]) => {
       this.todo = data;
     },
@@ -302,7 +310,7 @@ get f_B() {
   }
   //llenar calendario x sede
   get_calendario() {
-    var response = this.http.get(this.url + "Eventos?Rsede="+this.form_agregar.value.sede);
+    var response = this.http.get(this.url + "Eventos?Rsede="+this.form_agregar.value.sede, this.httpOptions);
     response.subscribe((data: any[]) => {
       this.calendario=data
       //transformar fecha formato

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
@@ -22,6 +22,13 @@ export class LiderCatalogoComponent implements OnInit {
   //validacion
   submit_buscar = false;
   submit_agregar = false;
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
@@ -66,7 +73,7 @@ export class LiderCatalogoComponent implements OnInit {
 
       spinner_buscar.removeAttribute("hidden");
       //select mediante el id
-      var response = this.http.get(this.url + "Lider/" + this.form_buscar.value.buscarID);
+      var response = this.http.get(this.url + "Lider/" + this.form_buscar.value.buscarID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
 
@@ -108,7 +115,7 @@ export class LiderCatalogoComponent implements OnInit {
 
   //Obtener nuevo Lider
   get_nuevo_lider() {
-    var response = this.http.get(this.url + "ultimoLider");
+    var response = this.http.get(this.url + "ultimoLider",this.httpOptions);
     response.subscribe((resultado: number) => {
       this.form_agregar.get('liderID').setValue(resultado + 1);
     },
@@ -118,7 +125,7 @@ export class LiderCatalogoComponent implements OnInit {
   }
   //List Lider
   get_Liders() {
-    var response = this.http.get(this.url + "lider/sede?Rsede="+localStorage.getItem('sede'));
+    var response = this.http.get(this.url + "lider/sede?Rsede="+localStorage.getItem('sede'),this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayLideres = data;
     },
@@ -131,7 +138,7 @@ export class LiderCatalogoComponent implements OnInit {
     //Spiner
     var spinner_agregar = document.getElementById("spinner_agregar");
     spinner_agregar.removeAttribute("hidden");
-    this.http.post(this.url + "Lider", this.form_agregar.value).subscribe(data => {
+    this.http.post(this.url + "Lider", this.form_agregar.value,this.httpOptions).subscribe(data => {
       spinner_agregar.setAttribute("hidden", "true");
       alert("Lider Guardado");
       this.clean_Agregar();
@@ -150,7 +157,7 @@ export class LiderCatalogoComponent implements OnInit {
     spinner_agregar.removeAttribute("hidden");
 
     //Update mediante el id y los campos de agregar
-    this.http.put(this.url + "Lider/" + this.form_buscar.value.buscarID, this.form_agregar.value).subscribe(data => {
+    this.http.put(this.url + "Lider/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
       spinner_agregar.setAttribute("hidden", "true");
       alert("Evento Modificado");
       this.get_Liders();
@@ -202,7 +209,7 @@ export class LiderCatalogoComponent implements OnInit {
       return;
     }
     else {
-      var response = this.http.delete(this.url + "Lider/" + id);
+      var response = this.http.delete(this.url + "Lider/" + id,this.httpOptions);
       response.subscribe((data: any[]) => {
         alert("Se a eliminado el Lider: " + id);
         this.get_Liders();

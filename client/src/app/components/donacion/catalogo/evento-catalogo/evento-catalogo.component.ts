@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
 
@@ -27,6 +27,13 @@ export class EventoCatalogoComponent implements OnInit {
   //validacion
   submit_buscar = false;
   submit_agregar = false;
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
@@ -73,7 +80,7 @@ export class EventoCatalogoComponent implements OnInit {
 
       spinner_buscar_evento.removeAttribute("hidden");
       //select mediante el id
-      var response = this.http.get(this.url + "Eventoe/" + this.form_buscar.value.buscarID);
+      var response = this.http.get(this.url + "Eventoe/" + this.form_buscar.value.buscarID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
         //transformar fecha formato
@@ -120,7 +127,7 @@ export class EventoCatalogoComponent implements OnInit {
 
   //Obtener nuevo Lider
   get_nuevo_evento() {
-    var response = this.http.get(this.url + "ultimoEventoe");
+    var response = this.http.get(this.url + "ultimoEventoe",this.httpOptions);
     response.subscribe((resultado: number) => {
       this.form_agregar.get('eventoID').setValue(resultado + 1);
     },
@@ -130,7 +137,7 @@ export class EventoCatalogoComponent implements OnInit {
   }
   //List Lider
   get_Eventos() {
-    var response = this.http.get(this.url + "evento/sede?Rsede="+localStorage.getItem('sede'));
+    var response = this.http.get(this.url + "evento/sede?Rsede="+localStorage.getItem('sede'),this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayEvento = data;
       console.log(data);
@@ -144,7 +151,7 @@ export class EventoCatalogoComponent implements OnInit {
     //Spiner
     var spinner_agregar = document.getElementById("spinner_agregar");
     spinner_agregar.removeAttribute("hidden");
-    this.http.post(this.url + "Eventoe", this.form_agregar.value).subscribe(data => {
+    this.http.post(this.url + "Eventoe", this.form_agregar.value,this.httpOptions).subscribe(data => {
       spinner_agregar.setAttribute("hidden", "true");
       alert("Evento Guardado");
       this.clean_Agregar();
@@ -163,7 +170,7 @@ export class EventoCatalogoComponent implements OnInit {
     spinner_agregar.removeAttribute("hidden");
 
     //Update mediante el id y los campos de agregar
-    this.http.put(this.url + "Eventoe/" + this.form_buscar.value.buscarID, this.form_agregar.value).subscribe(data => {
+    this.http.put(this.url + "Eventoe/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
       spinner_agregar.setAttribute("hidden", "true");
       alert("Evento Modificado");
       this.get_Eventos();
@@ -214,7 +221,7 @@ export class EventoCatalogoComponent implements OnInit {
       return;
     }
     else {
-      var response = this.http.delete(this.url + "Eventoe/" + id);
+      var response = this.http.delete(this.url + "Eventoe/" + id,this.httpOptions);
       response.subscribe((data: any[]) => {
         alert("Se a eliminado el Evento: " + id);
         this.get_Eventos();
