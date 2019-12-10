@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter,ViewChild,OnChanges, SimpleChanges } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient , HttpHeaders, HttpResponse} from '@angular/common/http';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 
@@ -26,6 +26,7 @@ export class CrearIncidenciaComponent implements OnInit {
 	submitted = false;
 
 	duracion : number = 3000;
+
 
 	constructor(
 		private http : HttpClient,
@@ -70,10 +71,18 @@ export class CrearIncidenciaComponent implements OnInit {
 		if (miembroID == "") 
 			return;
 
-		var response = this.http.get(this.url + controlador+ "?id=" + miembroID);
+		const httpOptions = {
+			headers: new HttpHeaders({
+				'Content-Type':  'application/json',
+				'miembroID': "139",
+				'Authorization': '996c7324-90817-47b9-a9cc-fb0da458f89f'
+			})
+		};
+
+		var response = this.http.get(this.url + controlador+ "?id=" + miembroID, httpOptions );
 		response.subscribe((resultado : any)=> {
 			this.form_guardar.patchValue(resultado);
-			console.log(resultado);
+			console.log(this.url + controlador+ "?id=" + miembroID);
 		},
 		error =>{
 			this.form_guardar.reset();

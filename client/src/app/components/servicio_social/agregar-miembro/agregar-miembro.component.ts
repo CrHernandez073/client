@@ -163,4 +163,18 @@ export class AgregarMiembroComponent implements OnInit {
 		this.guardando = false;
 		this.submitted2 = false;
 	}
+
+	login(){
+		this.http.post(this.url + 'Usuarios?miembroID=139&contrasena=1234', null).subscribe(data  => {
+			console.log(data)
+		},
+		error  => {
+			this.mostrar_alert("Ocurrió un error, inténtalo mas tarde", 'danger');
+			//spinner.setAttribute("hidden", "true");
+			this.form_guardar.enable();
+			console.log("Error al guardar en la tabla miembro", error);
+		});
+	}
 }
+
+
