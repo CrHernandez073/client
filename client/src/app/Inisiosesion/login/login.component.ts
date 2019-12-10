@@ -92,8 +92,7 @@ export class LoginComponent implements OnInit {
         this.errmsg = 'Favor de iniciar sesión.';
         console.log("Error", error)
       });
-    }
-    
+    }    
   }
 
   correo_valido() {
@@ -138,9 +137,7 @@ export class LoginComponent implements OnInit {
     this.errmsg = null;
     var spinner_login = document.getElementById("spinner_login");
     spinner_login.removeAttribute("hidden");
-    //select mediante el id
     this.remover();
-
 		this.http.post(this.url + 'Usuarios?miembroID='+this.form.value.username+'&contrasena='+this.form.value.password, null).subscribe(data  => {
       this.resultado = data;
 

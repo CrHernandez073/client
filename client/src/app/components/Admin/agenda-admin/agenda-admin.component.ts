@@ -55,7 +55,7 @@ export class AgendaAdminComponent implements OnInit {
 
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder, private userService: MyserviceService ) {
+  constructor(private router: Router,private http: HttpClient, private formBuilder: FormBuilder, private userService: MyserviceService ) {
 
   }
   ngOnInit() {
@@ -108,8 +108,11 @@ get f_B() {
   buscar_agenda() {
     //select mediante el id
     var response = this.http.get(this.url + "Agenda/" + this.form_buscar.value.buscarID, this.httpOptions);
-    response.subscribe((data: any[]) => {
+    response.subscribe((data: any[]) => {      
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+       }
       //transformar fecha formato
       var datePipe = new DatePipe("en-US");
       this.resultado.start = datePipe.transform(this.resultado.start, 'yyyy-MM-dd');
@@ -142,6 +145,9 @@ get f_B() {
     var response = this.http.get(this.url + "Agenda/" + id, this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+       }
       //transformar fecha formato
       var datePipe = new DatePipe("en-US");
       this.resultado.start = datePipe.transform(this.resultado.start, 'yyyy-MM-dd');
@@ -177,7 +183,11 @@ get f_B() {
     }
     else {
       var response = this.http.delete(this.url + "Agenda/" + id, this.httpOptions);
-      response.subscribe((data: any[]) => {        
+      response.subscribe((data: any[]) => {  
+        this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+         }      
       this.mostrar_alert("Se a eliminado el Evento: " + id, 'primary', 15000, null);
         this.get_mieventos();
         this.get_todoseventos();
@@ -219,7 +229,11 @@ get f_B() {
     this.get_nuevo_agenda();
   
     //verificar la fecha 
-    this.http.post(this.url + "Agenda", this.form_agregar.value, this.httpOptions).subscribe(data => {
+    this.http.post(this.url + "Agenda", this.form_agregar.value, this.httpOptions).subscribe(data => { 
+      this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+       }
       alert("Se a registrado el Evento correctamente. ");
       this.clean_Agregar();
       this.form_agregar.get('usuarioID').setValue(this.miembroID);
@@ -236,6 +250,10 @@ get f_B() {
   }
   modificar_agenda() {
     this.http.put(this.url + "Agenda/" + this.form_agregar.value.agendaID, this.form_agregar.value, this.httpOptions).subscribe(data => {
+      this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+       }
       alert("Evento Modificado");
       this.get_mieventos();
       this.get_todoseventos();
@@ -267,6 +285,10 @@ get f_B() {
   get_nuevo_agenda() {
     var response = this.http.get(this.url + "ultimo_agenda", this.httpOptions);
     response.subscribe((resultado: number) => {
+      this.resultado = resultado;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+       }
       this.form_agregar.get('agendaID').setValue(resultado + 1);
     },
       error => {
