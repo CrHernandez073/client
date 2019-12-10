@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter,ViewChild,OnChanges, SimpleChanges } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient , HttpHeaders, HttpResponse} from '@angular/common/http';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 
@@ -26,7 +26,13 @@ export class CrearIncidenciaComponent implements OnInit {
 	submitted = false;
 
 	duracion : number = 3000;
-
+	httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': "139",
+			'Authorization': '996c7324-9087-47b9-a9cc-fb0da458f89f'
+		})
+	};
 	constructor(
 		private http : HttpClient,
 		private formBuilder: FormBuilder
@@ -70,7 +76,7 @@ export class CrearIncidenciaComponent implements OnInit {
 		if (miembroID == "") 
 			return;
 
-		var response = this.http.get(this.url + controlador+ "?id=" + miembroID);
+		var response = this.http.get(this.url + controlador+ "?id=" + miembroID, this.httpOptions );
 		response.subscribe((resultado : any)=> {
 			this.form_guardar.patchValue(resultado);
 			console.log(resultado);
@@ -147,4 +153,16 @@ export class CrearIncidenciaComponent implements OnInit {
 		var input = document.getElementById("miembroID");
 		input.focus();
 	}
+	login(){
+		this.http.post(this.url + 'Usuarios?miembroID=139&contrasena=1234', null).subscribe(data  => {
+			console.log(data)
+		},
+		error  => {
+			this.mostrar_alert("Ocurrió un error, inténtalo mas tarde", 'danger');
+			//spinner.setAttribute("hidden", "true");
+			this.form_guardar.enable();
+			console.log("Error al guardar en la tabla miembro", error);
+		});
+	}
+	
 }
