@@ -26,7 +26,12 @@ export class RpNinosComponent implements OnInit {
   promedio_matutino: any;
   promedio_vespertino: any;
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder, private excelService: ExcelService) {
+  constructor(
+    private http: HttpClient,
+    private formBuilder: FormBuilder, 
+    private excelService: ExcelService, 
+    private router: Router
+    ) {
   }
   //busqueda
   informe: any;
@@ -279,6 +284,10 @@ export class RpNinosComponent implements OnInit {
 
     response.subscribe((data: any[]) => {
       this.informe = data;
+      if (this.informe == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.contador = data.length;
     },
       error => {
@@ -318,6 +327,10 @@ export class RpNinosComponent implements OnInit {
 
       response.subscribe((data: any[]) => {
         this.informe_asistensia = data;
+        if (this.informe_asistensia == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
       },
         error => {
           console.log("Error", error)
@@ -346,6 +359,10 @@ export class RpNinosComponent implements OnInit {
 
       response.subscribe((data: any[]) => {
         this.informe_asistensia2 = data;
+        if (this.informe_asistensia2 == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
         this.promedio_matutino = this.informe_asistensia2.count_asistensia_Matutinos_fecha / this.informe_asistensia.count_total_matutino_activos;
         this.promedio_vespertino = this.informe_asistensia2.count_asistensia_Vespertino_fecha / this.informe_asistensia.count_total_vespertino_activos;
 

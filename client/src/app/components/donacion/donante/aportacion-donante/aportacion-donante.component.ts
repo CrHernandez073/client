@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-aportacion-donante',
@@ -48,7 +49,7 @@ export class AportacionDonanteComponent implements OnInit {
 
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder) {
+  constructor(private http: HttpClient, private formBuilder: FormBuilder,private router: Router) {
     this.get_Fdonacion();
   }
 
@@ -108,6 +109,10 @@ export class AportacionDonanteComponent implements OnInit {
     var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_agregar.value.donacionID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
         this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
         this.form_agregar.get('nombre_donante').setValue(this.resultado[0].nombres);
       },
@@ -141,6 +146,10 @@ export class AportacionDonanteComponent implements OnInit {
     var response = this.http.get(this.url + "FormaDonacion/EspecificaID?id="+this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayFdonacion = data;
+      if (this.arrayFdonacion == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.form_agregar.get('donacionID').setValue(this.form_buscar.value.buscarID);
       this.traer_donante();
       this.mostrar_alert("Busqueda existosa.", 'primary', 5000, null);
@@ -161,6 +170,10 @@ export class AportacionDonanteComponent implements OnInit {
       var response = this.http.get(this.url + "FormaDonacion/" + id,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
         //transformar fecha formato
         var datePipe = new DatePipe("en-US");
         this.resultado.vence = datePipe.transform(this.resultado.vence, 'yyyy-MM-dd');
@@ -203,6 +216,11 @@ export class AportacionDonanteComponent implements OnInit {
     spinner_agregar_contacto.removeAttribute("hidden");
     //Donacion
     this.http.post(this.url + "FormaDonacion", this.form_agregar.value,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       spinner_agregar_contacto.setAttribute("hidden", "true");
       this.llenar();
       this.mostrar_alert("Se a registrado la donacion correctamente.", 'success', 5000, null);
@@ -224,6 +242,11 @@ export class AportacionDonanteComponent implements OnInit {
     spinner_agregar_contacto.removeAttribute("hidden");
     //Update mediante el id y los campos de agregar
     this.http.put(this.url + "FormaDonacion/" + this.form_agregar.value.formadonacionID, this.form_agregar.value,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       spinner_agregar_contacto.setAttribute("hidden", "true");      
       this.mostrar_alert("Donacion Modificada.", 'primary', 5000, null);
       this.llenar();
@@ -278,6 +301,11 @@ export class AportacionDonanteComponent implements OnInit {
   get_nuevo_Fdonacion() {
     var response = this.http.get(this.url + "ultimoFormaDonacion",this.httpOptions);
     response.subscribe((resultado: number) => {
+      this.resultado=resultado;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.form_agregar.get('formadonacionID').setValue(resultado + 1);
     },
       error => {
@@ -288,6 +316,10 @@ export class AportacionDonanteComponent implements OnInit {
     var response = this.http.get(this.url + "Aportacion/",this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayFdonacion = data;
+      if (this.arrayFdonacion == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       console.log(this.arrayFdonacion);
     },
       error => {

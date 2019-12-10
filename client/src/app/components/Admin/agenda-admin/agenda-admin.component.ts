@@ -112,6 +112,7 @@ get f_B() {
       this.resultado = data;
       if (this.resultado == "Sesión invalida") {          
         this.router.navigate(['/login']);
+        return;
        }
       //transformar fecha formato
       var datePipe = new DatePipe("en-US");
@@ -147,6 +148,7 @@ get f_B() {
       this.resultado = data;
       if (this.resultado == "Sesión invalida") {          
         this.router.navigate(['/login']);
+        return;
        }
       //transformar fecha formato
       var datePipe = new DatePipe("en-US");
@@ -187,6 +189,7 @@ get f_B() {
         this.resultado = data;
         if (this.resultado == "Sesión invalida") {          
           this.router.navigate(['/login']);
+          return;
          }      
       this.mostrar_alert("Se a eliminado el Evento: " + id, 'primary', 15000, null);
         this.get_mieventos();
@@ -203,8 +206,7 @@ get f_B() {
 
   opcion_agenda() {
     this.submit_agregar = true;
-    if (this.form_agregar.invalid) {
-      
+    if (this.form_agregar.invalid) {      
       this.mostrar_alert("Error. Favor de llenar los campos requeridos.", 'danger', 5000, null);
       return;
     }
@@ -226,13 +228,13 @@ get f_B() {
   }
   
   agregar_agenda() {
-    this.get_nuevo_agenda();
-  
+    this.get_nuevo_agenda();  
     //verificar la fecha 
     this.http.post(this.url + "Agenda", this.form_agregar.value, this.httpOptions).subscribe(data => { 
       this.resultado = data;
       if (this.resultado == "Sesión invalida") {          
         this.router.navigate(['/login']);
+        return;
        }
       alert("Se a registrado el Evento correctamente. ");
       this.clean_Agregar();
@@ -253,6 +255,7 @@ get f_B() {
       this.resultado = data;
       if (this.resultado == "Sesión invalida") {          
         this.router.navigate(['/login']);
+        return;
        }
       alert("Evento Modificado");
       this.get_mieventos();
@@ -288,6 +291,7 @@ get f_B() {
       this.resultado = resultado;
       if (this.resultado == "Sesión invalida") {          
         this.router.navigate(['/login']);
+        return;
        }
       this.form_agregar.get('agendaID').setValue(resultado + 1);
     },
@@ -304,6 +308,10 @@ get f_B() {
     var response = this.http.get(this.url + "Registro_agenda?id=" + this.form_agregar.value.usuarioID, this.httpOptions);
     response.subscribe((data: any[]) => {
       this.mievento = data;
+      if (this.mievento == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error)
@@ -315,6 +323,10 @@ get f_B() {
     var response = this.http.get(this.url + "Eventos?Rsede="+this.form_agregar.value.sede, this.httpOptions);
     response.subscribe((data: any[]) => {
       this.todoseventos = data;
+      if (this.todoseventos == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error)
@@ -325,6 +337,10 @@ get f_B() {
     var response = this.http.get(this.url + "all/agenda", this.httpOptions);
     response.subscribe((data: any[]) => {
       this.todo = data;
+      if (this.todo == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error)
@@ -334,7 +350,11 @@ get f_B() {
   get_calendario() {
     var response = this.http.get(this.url + "Eventos?Rsede="+this.form_agregar.value.sede, this.httpOptions);
     response.subscribe((data: any[]) => {
-      this.calendario=data
+      this.calendario=data;
+      if (this.calendario == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       //transformar fecha formato
       var datePipe = new DatePipe("en-US");
       for (let entry of this.calendario) {

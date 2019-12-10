@@ -21,7 +21,12 @@ export class ReportesComponent implements OnInit {
   data: any;
   nombre: any;
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder, private excelService: ExcelService) {
+  constructor(
+    private http: HttpClient,
+    private formBuilder: FormBuilder, 
+    private excelService: ExcelService, 
+    private router: Router
+    ) {
     this.get_Lider();
     this.get_Eventoe();
     this.get_Campana();
@@ -268,6 +273,11 @@ export class ReportesComponent implements OnInit {
 
     response.subscribe((data: any[]) => {
       this.informe = data;
+      if (this.informe == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
       this.contador = data.length;
     },
       error => {
@@ -281,6 +291,11 @@ export class ReportesComponent implements OnInit {
     var response = this.http.get(this.url + "Lider/",this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayLideres = data;
+      if (this.arrayLideres == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
     },
       error => {
         console.log("Error", error)
@@ -290,6 +305,11 @@ export class ReportesComponent implements OnInit {
     var response = this.http.get(this.url + "Campana/",this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayCampanas = (data);
+      if (this.arrayCampanas == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
     },
       error => {
         console.log("Error", error)
@@ -299,6 +319,11 @@ export class ReportesComponent implements OnInit {
     var response = this.http.get(this.url + "Eventoe/",this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayEventos = (data);
+      if (this.arrayEventos == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
     },
       error => {
         console.log("Error", error)

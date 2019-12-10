@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'newuser-admin',
@@ -31,7 +32,7 @@ export class NewuserAdminComponent implements OnInit {
 
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder) { }
+  constructor(private http: HttpClient, private formBuilder: FormBuilder,private router: Router) { }
 
   ngOnInit() {
     //Se rellena los campos al formulario 
@@ -77,6 +78,11 @@ export class NewuserAdminComponent implements OnInit {
   obtener_ultimo_miembro() {
     var response = this.http.get(this.url + "ultimoMiembro",this.httpOptions);
     response.subscribe((resultado: number) => {
+      this.resultado=resultado;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.form_config.get('usuarioID').setValue(resultado + 1);
       this.form_config.get('miembroID').setValue(resultado + 1);
     },
@@ -92,7 +98,7 @@ export class NewuserAdminComponent implements OnInit {
     this.form_config.get('contrasena').setValue(orig.trim());
     orig = this.form_config.value.contrasena;
     //verifica formularío
-    if (this.form_config.invalid || orig.length <= 3 ) {
+    if (this.form_config.invalid && orig.length <= 3 ) {
       alert("Favor de llenar los campos requeridos y ingresar una contraseña de minimo 3 letras.");
       this.submit_config = true;
       return;
@@ -107,22 +113,34 @@ export class NewuserAdminComponent implements OnInit {
       sede: this.form_config.value.sede
     }
     this.http.post(this.url + 'miembro', this.datos_miembro,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.agregar_usuario();
       spinner.setAttribute("hidden", "true");
     },
       error => {
+        alert('Favor de llenar los campos correctamente y/o verificar conexion.');
         console.log("Error", error);
       });
   }
 
   agregar_usuario() {
     this.http.post(this.url + 'Usuarios', this.form_config.value,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       alert('Se a guardado el usuario correctamente. ID: ' + this.form_config.value.usuarioID);
       this.form_config.reset();
       this.obtener_ultimo_miembro();
       this.form_config.get('status').setValue(true);
     },
       error => {
+        alert('Favor de llenar los campos correctamente y/o verificar conexion.');
         console.log("Error", error);
       });
   }

@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'evento-catalogo',
@@ -37,7 +38,7 @@ export class EventoCatalogoComponent implements OnInit {
 
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder) {
+  constructor(private http: HttpClient, private formBuilder: FormBuilder,private router: Router) {
     this.get_nuevo_evento();
     this.get_Eventos();
    }
@@ -83,6 +84,10 @@ export class EventoCatalogoComponent implements OnInit {
       var response = this.http.get(this.url + "Eventoe/" + this.form_buscar.value.buscarID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
         //transformar fecha formato
         var datePipe = new DatePipe("en-US");
         this.resultado.fecha = datePipe.transform(this.resultado.fecha, 'yyyy-MM-dd');
@@ -129,6 +134,11 @@ export class EventoCatalogoComponent implements OnInit {
   get_nuevo_evento() {
     var response = this.http.get(this.url + "ultimoEventoe",this.httpOptions);
     response.subscribe((resultado: number) => {
+      this.resultado=resultado;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.form_agregar.get('eventoID').setValue(resultado + 1);
     },
       error => {
@@ -140,6 +150,10 @@ export class EventoCatalogoComponent implements OnInit {
     var response = this.http.get(this.url + "evento/sede?Rsede="+localStorage.getItem('sede'),this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayEvento = data;
+      if (this.arrayEvento == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       console.log(data);
     },
       error => {
@@ -152,6 +166,11 @@ export class EventoCatalogoComponent implements OnInit {
     var spinner_agregar = document.getElementById("spinner_agregar");
     spinner_agregar.removeAttribute("hidden");
     this.http.post(this.url + "Eventoe", this.form_agregar.value,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       spinner_agregar.setAttribute("hidden", "true");
       alert("Evento Guardado");
       this.clean_Agregar();
@@ -171,6 +190,11 @@ export class EventoCatalogoComponent implements OnInit {
 
     //Update mediante el id y los campos de agregar
     this.http.put(this.url + "Eventoe/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       spinner_agregar.setAttribute("hidden", "true");
       alert("Evento Modificado");
       this.get_Eventos();
@@ -223,6 +247,11 @@ export class EventoCatalogoComponent implements OnInit {
     else {
       var response = this.http.delete(this.url + "Eventoe/" + id,this.httpOptions);
       response.subscribe((data: any[]) => {
+        this.resultado=data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
         alert("Se a eliminado el Evento: " + id);
         this.get_Eventos();
         this.get_nuevo_evento();

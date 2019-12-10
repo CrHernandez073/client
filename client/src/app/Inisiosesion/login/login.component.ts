@@ -149,7 +149,7 @@ export class LoginComponent implements OnInit {
         localStorage.setItem('fechanacimiento', this.resultado.fechanacimiento);
         localStorage.setItem('puesto', this.resultado.puesto);
         localStorage.setItem('Authorization', this.resultado.token);
-        localStorage.setItem('sede', this.resultado.Miembro.sede);
+        localStorage.setItem('sede', this.resultado.sede);
         spinner_login.setAttribute("hidden", "true");
 
         if (localStorage.getItem("puesto") == "Administrador") {

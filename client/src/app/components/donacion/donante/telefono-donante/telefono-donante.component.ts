@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { HttpClient ,HttpHeaders} from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 
 
 @Component({ 
@@ -63,7 +64,7 @@ cambiar_valor_Padre(){
 
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder) { }
+  constructor(private http: HttpClient, private formBuilder: FormBuilder, private router: Router) { }
 
   ngOnInit() {
     //Se rellena los campos al formulario 
@@ -111,6 +112,11 @@ cambiar_valor_Padre(){
     var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
+  
         this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
         this.form_agregar.get('nombre_donante').setValue(this.resultado[0].nombres);
       },
@@ -148,6 +154,10 @@ cambiar_valor_Padre(){
       var response = this.http.get(this.url + "Telefonodonante/" + this.form_buscar.value.buscarID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
   
         this.form_agregar.get('telefonoID').setValue(this.resultado.telefonoID);
         this.form_agregar.get('donacionID').setValue(this.resultado.donacionID);
@@ -189,6 +199,12 @@ cambiar_valor_Padre(){
 
     //Update mediante el id y los campos de agregar
     this.http.put(this.url + "Telefonodonante/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
       spinner_agregar_telefono.setAttribute("hidden", "true");
       
       this.mostrar_alert("Telefono Moficado.", 'primary', 5000, null);
