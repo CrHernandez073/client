@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'modifuser-admin',
@@ -32,7 +33,7 @@ export class ModifuserAdminComponent implements OnInit {
 
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder) { }
+  constructor(private http: HttpClient, private router: Router, private formBuilder: FormBuilder) { }
 
   ngOnInit() {
     //Se rellena los campos al formulario 
@@ -81,8 +82,11 @@ export class ModifuserAdminComponent implements OnInit {
       + "usuario/buscador?Rsede=" + this.form_config.value.sede
       + "&rmiembroid=0&Rstatus=false&Rnacionalidad=null&Restado=null&Rnombre=null&Rpuesto=null", this.httpOptions);
     response.subscribe((data: any[]) => {
-      console.log(data);
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error)
@@ -99,6 +103,10 @@ export class ModifuserAdminComponent implements OnInit {
     );
     response.subscribe((data: any[]) => {
       this.arreglo = data;
+      if (this.arreglo == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.form_config.patchValue(this.arreglo[0]);
       this.form_config.get('status').setValue(this.arreglo[0].status);
 
@@ -118,8 +126,7 @@ export class ModifuserAdminComponent implements OnInit {
       });
   }
 
-  modificar() {
-    
+  modificar() {    
     this.submit_info = false;
     var orig = this.form_config.value.contrasena;
     this.form_config.get('contrasena').setValue(orig.trim());
@@ -149,6 +156,11 @@ export class ModifuserAdminComponent implements OnInit {
       sede: this.form_config.value.sede
     }
     this.http.put(this.url + "Miembro/" + this.form_config.value.miembroID, this.datos_miembro, this.httpOptions).subscribe(data => {
+      this.resultado =data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error);
@@ -157,7 +169,11 @@ export class ModifuserAdminComponent implements OnInit {
 
   modificar_usuario() {
     this.http.put(this.url + "Usuarios/" + this.form_config.value.miembroID, this.form_config.value, this.httpOptions).subscribe(data => {
-
+      this.resultado =data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error);

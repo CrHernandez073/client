@@ -3,6 +3,7 @@ import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'nota-donante',
@@ -69,7 +70,7 @@ submit_agregar= false;
 };
 url = "https://api-remota.conveyor.cloud/api/";
 
-constructor(private http : HttpClient, private formBuilder: FormBuilder) { }
+constructor(private http : HttpClient, private formBuilder: FormBuilder, private router: Router) { }
 
 ngOnInit() {
 //Se rellena los campos al formulario 
@@ -118,6 +119,11 @@ traer_donante(){
   var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
       this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
       this.form_agregar.get('nombre_donante').setValue(this.resultado[0].nombres);
     },
@@ -156,6 +162,11 @@ buscar_nota(id: any) {
       var response = this.http.get(this.url + "NotasDonantes/" + id,this.httpOptions);
       response.subscribe((data: any[]) => { 
         this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
+  
         //transformar fecha formato
         var datePipe = new DatePipe("en-US");
         this.resultado.programar = datePipe.transform(this.resultado.programar, 'yyyy-MM-dd');
@@ -185,6 +196,12 @@ agregar_nota() {
   spinner_agregar_nota.removeAttribute("hidden");
   //Donacion
   this.http.post(this.url + "NotasDonantes", this.form_agregar.value,this.httpOptions).subscribe(data => {
+    this.resultado=data;
+    if (this.resultado == "Sesión invalida") {          
+      this.router.navigate(['/login']);
+      return;
+     }
+
     alert("Se a registrado la Nota correctamente. ");
 
     spinner_agregar_nota.setAttribute("hidden", "true");
@@ -206,6 +223,12 @@ modificar_nota() {
   spinner_agregar_nota.removeAttribute("hidden");
 
   this.http.put(this.url + "NotasDonantes/" + this.form_agregar.value.notaID, this.form_agregar.value,this.httpOptions).subscribe(data => {
+    this.resultado=data;
+    if (this.resultado == "Sesión invalida") {          
+      this.router.navigate(['/login']);
+      return;
+     }
+
     spinner_agregar_nota.setAttribute("hidden", "true");
     
     this.mostrar_alert("Modificacion Exitosa.", 'primary', 5000, null);
@@ -251,6 +274,12 @@ radioChange(event: any){
 get_nuevo_nota(){
   var response = this.http.get(this.url + "ultimoNota",this.httpOptions);
   response.subscribe((resultado: number) => {
+    this.resultado=resultado;
+    if (this.resultado == "Sesión invalida") {          
+      this.router.navigate(['/login']);
+      return;
+     }
+
     this.form_agregar.get('notaID').setValue(resultado + 1);
   },
     error => {
@@ -262,6 +291,11 @@ get_nota(){
   var response = this.http.get(this.url + "Nota/notaespecifica?id="+this.form_buscar.value.buscarID,this.httpOptions);
   response.subscribe((data: any[]) => {
     this.arraynota = data;
+    if (this.arraynota == "Sesión invalida") {          
+      this.router.navigate(['/login']);
+      return;
+     }
+
     this.mostrar_alert("Busqueda existosa.", 'primary', 5000, null);
   },
     error => {

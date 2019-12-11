@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'dfiscales-donante',
@@ -57,7 +58,7 @@ httpOptions = {
 
 url = "https://api-remota.conveyor.cloud/api/";
 
-constructor(private http: HttpClient, private formBuilder: FormBuilder) { }
+constructor(private http: HttpClient, private formBuilder: FormBuilder,private router: Router) { }
 
 ngOnInit() {
   //Se rellena los campos al formulario 
@@ -116,6 +117,11 @@ traer_donante(){
   var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
       this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
       this.form_agregar.get('nombre_donante').setValue(this.resultado[0].nombres);
     },
@@ -137,6 +143,11 @@ buscar_dfiscales() {
     var response = this.http.get(this.url + "DFiscal/" + this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
 
       this.form_agregar.get('datosfiscalesID').setValue(this.resultado.datosfiscalesID);
       this.form_agregar.get('donacionID').setValue(this.resultado.donacionID);
@@ -176,6 +187,12 @@ modificar_dfiscales() {
 
   //Update mediante el id y los campos de agregar
   this.http.put(this.url + "DFiscal/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
+    this.resultado=data;
+    if (this.resultado == "Sesión invalida") {          
+      this.router.navigate(['/login']);
+      return;
+     }
+
     spinner_agregar_dfiscales.setAttribute("hidden", "true");
     
     this.mostrar_alert("Datos Fiscales modificados.", 'primary', 5000, null);

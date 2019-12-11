@@ -45,6 +45,11 @@ export class NavbarDonanteComponent implements OnInit {
       var response = this.http.get(this.url + "Usuario/id?id=" + localStorage.getItem('miembroID'), this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
+  
       },
         error => {
           this.router.navigate(['/login']);

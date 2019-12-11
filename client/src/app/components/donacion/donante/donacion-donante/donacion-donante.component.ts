@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'donacion-donante',
@@ -64,7 +65,7 @@ export class DonacionDonanteComponent implements OnInit, OnChanges {
   
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder) {
+  constructor(private http: HttpClient, private formBuilder: FormBuilder, private router: Router) {
 
     this.get_nuevo_donacion();
     this.get_Lider();
@@ -138,6 +139,11 @@ export class DonacionDonanteComponent implements OnInit, OnChanges {
       var response = this.http.get(this.url + "Donacion/" + this.form_buscar.value.buscarID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
+  
         //transformar fecha formato
         var datePipe = new DatePipe("en-US");
         this.resultado.fechanacimiento = datePipe.transform(this.resultado.fechanacimiento, 'yyyy-MM-dd');
@@ -198,6 +204,12 @@ export class DonacionDonanteComponent implements OnInit, OnChanges {
   get_nuevo_donacion() {
     var response = this.http.get(this.url + "ultimoDonacion",this.httpOptions);
     response.subscribe((resultado: number) => {
+      this.resultado=resultado;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
       this.form_agregar.get('donacionID').setValue(resultado + 1);
     },
       error => {
@@ -212,6 +224,12 @@ export class DonacionDonanteComponent implements OnInit, OnChanges {
     spinner_agregar_donacion.removeAttribute("hidden");
     //Donacion
     this.http.post(this.url + "Donacion", this.form_agregar.value,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
       this.crear_tabla("Telefonodonante", "telefonoID", this.form_agregar.value.donacionID);
       this.crear_tabla("DireccionDonante", "direcciondonanteID", this.form_agregar.value.donacionID);
       this.crear_tabla("Contacto", "contactoID", this.form_agregar.value.donacionID);
@@ -247,7 +265,11 @@ export class DonacionDonanteComponent implements OnInit, OnChanges {
   crear_tabla(tabla: string, columnaID: string, valorID: number) {
     var datos_aux = JSON.parse('{"' + columnaID + '":' + valorID + ', "donacionID":' + valorID + '}');
     this.http.post(this.url + tabla, datos_aux,this.httpOptions).subscribe(data => {
-      // console.log("Se han guardado: " + tabla);
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error al guardar en la tabla: " + tabla, error);
@@ -260,6 +282,12 @@ export class DonacionDonanteComponent implements OnInit, OnChanges {
 
     //Update mediante el id y los campos de agregar
     this.http.put(this.url + "Donacion/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
       spinner_agregar_donacion.setAttribute("hidden", "true");
       
       this.mostrar_alert("Donacion Modificada correctamente.", 'primary', 5000, null);
@@ -308,6 +336,11 @@ export class DonacionDonanteComponent implements OnInit, OnChanges {
     var response = this.http.get(this.url + "Lider/",this.httpOptions);
     response.subscribe((data: any[]) => {
     this.arrayLideres = data;  
+    if (this.arrayLideres == "Sesión invalida") {          
+      this.router.navigate(['/login']);
+      return;
+     }
+
     },
       error => {
         this.mostrar_alert("Ocurrió un error, Favor de verificar la conexion.", 'danger', 5000, null);
@@ -318,6 +351,10 @@ export class DonacionDonanteComponent implements OnInit, OnChanges {
     var response = this.http.get(this.url + "Campana/",this.httpOptions);
     response.subscribe((data: any[]) => {
     this.arrayCampanas = (data);   
+    if (this.arrayCampanas == "Sesión invalida") {          
+      this.router.navigate(['/login']);
+      return;
+     }
     },
       error => {
         console.log("Error", error)
@@ -327,6 +364,11 @@ export class DonacionDonanteComponent implements OnInit, OnChanges {
     var response = this.http.get(this.url + "Eventoe/",this.httpOptions);
     response.subscribe((data: any[]) => {
     this.arrayEventos = (data);    
+    if (this.arrayEventos == "Sesión invalida") {          
+      this.router.navigate(['/login']);
+      return;
+     }
+
     },
       error => {
         console.log("Error", error)

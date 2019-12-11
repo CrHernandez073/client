@@ -21,7 +21,12 @@ export class RpIncidenciaComponent implements OnInit {
   data: any;
   nombre: any;
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder, private excelService: ExcelService) {
+  constructor(
+    private http: HttpClient, 
+    private formBuilder: FormBuilder, 
+    private excelService: ExcelService, 
+    private router: Router
+    ) {
   }
   //busqueda
   informe: any;
@@ -207,6 +212,10 @@ export class RpIncidenciaComponent implements OnInit {
 
     response.subscribe((data: any[]) => {
       this.informe = data;
+      if (this.informe == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.contador= data.length;
     },
       error => {

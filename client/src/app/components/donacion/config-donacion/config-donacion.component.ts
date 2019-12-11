@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-config-donacion',
@@ -28,7 +29,7 @@ tipo: number=0;
 
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient,private formBuilder: FormBuilder ) { 
+  constructor(private http: HttpClient,private formBuilder: FormBuilder,private router: Router ) { 
         
   }
 
@@ -70,14 +71,15 @@ tipo: number=0;
   }  
 
 	buscar_usuario(){
-	  this.submit_config = true;
-  
+	  this.submit_config = true;  
      //select mediante el id
-     console.log(this.form_config.value.miembroID);
       var response = this.http.get(this.url + "Usuario/id?id=" + this.form_config.value.miembroID,this.httpOptions);
      response.subscribe((data: any[]) => {
        this.resultado = data;
-       console.log(this.resultado);
+       if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
        //transformar fecha formato
        var datePipe = new DatePipe("en-US");
        this.resultado[0].fechanacimiento = datePipe.transform(this.resultado[0].fechanacimiento, 'yyyy-MM-dd');
@@ -107,7 +109,7 @@ tipo: number=0;
     this.form_config.get('contrasena').setValue(orig.trim());
     orig = this.form_config.value.contrasena;
     //verifica formularío
-    if (this.form_config.invalid || orig.length < 3 ) {
+    if (this.form_config.invalid || orig.length <= 3 ) {
       alert("Favor de llenar los campos requeridos e ingresar una contraseña de minimo 3 letras.");
       this.submit_config = true;
       return;
@@ -117,6 +119,10 @@ tipo: number=0;
 
     //Update mediante el id y los campos de agregar
     this.http.put(this.url + "Usuarios/" + localStorage.getItem("miembroID"), this.form_config.value,this.httpOptions).subscribe(data => {
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       spinner_config.setAttribute("hidden", "true");
       alert("Usuario Modificado Correctamente.");
     },
