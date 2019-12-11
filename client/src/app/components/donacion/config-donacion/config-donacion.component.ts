@@ -109,7 +109,7 @@ tipo: number=0;
     this.form_config.get('contrasena').setValue(orig.trim());
     orig = this.form_config.value.contrasena;
     //verifica formularío
-    if (this.form_config.invalid && orig.length <= 3 ) {
+    if (this.form_config.invalid || orig.length <= 3 ) {
       alert("Favor de llenar los campos requeridos e ingresar una contraseña de minimo 3 letras.");
       this.submit_config = true;
       return;

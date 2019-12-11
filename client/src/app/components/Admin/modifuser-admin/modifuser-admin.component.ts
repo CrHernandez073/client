@@ -133,7 +133,7 @@ export class ModifuserAdminComponent implements OnInit {
     orig = this.form_config.value.contrasena;
 
     //verifica formularío
-    if (this.form_config.invalid && orig.length <= 3) {
+    if (this.form_config.invalid || orig.length <= 3) {
       alert('Favor de seleccionar un usuario de la tabla o llenar los campos requeridos para su modificación(contraseña min. 3 letras).');
       this.submit_info = true;
       return;
