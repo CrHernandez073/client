@@ -4,3 +4,11 @@
 	color: white;
 	font-family: "Helvetica";
 }
+tr:nth-child(even) {
+    background-color: #dddddd;
+  }
+
+  .tr:nth-child(even) {
+    background-color: #dddddd;
+  }
+

@@ -10,3 +10,10 @@
 	bottom:5%;
 	right:2%;
 }
+
+.admin {
+	display:scroll;
+	position:fixed;
+	bottom: 5%;
+	left: 2%;
+}

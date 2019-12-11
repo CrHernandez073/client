@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'direccion-donante',
@@ -48,9 +49,17 @@ visible: boolean=false;
 mensaje: string;
 tipo:any;
 
+httpOptions = {
+  headers: new HttpHeaders({
+    'Content-Type':  'application/json',
+    'miembroID': localStorage.getItem('miembroID'),
+    'Authorization': localStorage.getItem('Authorization')
+  })
+};
+
 url = "https://api-remota.conveyor.cloud/api/";
 
-constructor(private http: HttpClient, private formBuilder: FormBuilder) { }
+constructor(private http: HttpClient, private formBuilder: FormBuilder, private router: Router) { }
 
 ngOnInit() {
   //Se rellena los campos al formulario 
@@ -61,7 +70,7 @@ ngOnInit() {
 
   //agregar
   this.form_agregar = this.formBuilder.group({
-    direcciondonanteID: [''],
+    direcciondonanteID: ['', Validators.required],
     donacionID: ['', Validators.required],
     tipodireccion1 :['', Validators.required],	
     calle1	:['', Validators.required],		
@@ -106,9 +115,14 @@ get f_A() {
 }
 
 traer_donante(){
-  var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID);
+  var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
       this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
       this.form_agregar.get('nombre_donante').setValue(this.resultado[0].nombres);
     },
@@ -144,9 +158,13 @@ buscar_direccion() {
   else {
     spinner_buscar_direccion.removeAttribute("hidden");
     //select mediante el id
-    var response = this.http.get(this.url + "DireccionDonante/" + this.form_buscar.value.buscarID);
+    var response = this.http.get(this.url + "DireccionDonante/" + this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
 
       this.form_agregar.get('direcciondonanteID').setValue(this.resultado.direcciondonanteID);
       this.form_agregar.get('donacionID').setValue(this.resultado.donacionID);
@@ -189,11 +207,23 @@ buscar_direccion() {
 }
 
 modificar_direccion() {
+  this.submit_agregar = false;
+  if (this.form_agregar.invalid) {
+    this.submit_agregar = true;
+    this.mostrar_alert("Ocurrió un error, Favor de llenar los campos requeridos.", 'danger', 5000, null);
+    return;
+  }
   var spinner_agregar_direccion = document.getElementById("spinner_agregar_direccion");
   spinner_agregar_direccion.removeAttribute("hidden");
 
   //Update mediante el id y los campos de agregar
-  this.http.put(this.url + "DireccionDonante/" + this.form_buscar.value.buscarID, this.form_agregar.value).subscribe(data => {
+  this.http.put(this.url + "DireccionDonante/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
+    this.resultado=data;
+    if (this.resultado == "Sesión invalida") {          
+      this.router.navigate(['/login']);
+      return;
+     }
+
     spinner_agregar_direccion.setAttribute("hidden", "true");
     
     this.mostrar_alert("Direccion modificada.", 'primary', 5000, null);

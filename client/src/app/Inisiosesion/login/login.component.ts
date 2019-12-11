@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { MyserviceService } from '../../myservice.service'
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 
 @Component({
@@ -31,11 +31,20 @@ export class LoginComponent implements OnInit {
 
   resultado: any;
 
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
+
   constructor(private Userservice: MyserviceService, private router: Router, private http: HttpClient, ) {
-    this.verificacion_sesion(); //agregé este comentario haber si me actualiza git
+    this.verificacion_sesion();
    }
 
   ngOnInit() {
+    this.verificacion_sesion();
     this.form = new FormGroup({
       username: new FormControl('', [Validators.required]),
       password: new FormControl('', [Validators.required, Validators.minLength(3)]),
@@ -54,28 +63,43 @@ export class LoginComponent implements OnInit {
     return this.form.controls;
   }
 
-  verificacion_sesion(){
-    if (localStorage.getItem("miembroID") == undefined || localStorage.getItem('miembroID') == null || localStorage.getItem('puesto') == undefined || localStorage.getItem('puesto') == null ) {
-      return;
-    } else if (localStorage.getItem("puesto") == "Administrador") {
-      this.router.navigate(['']);
-    } else if (localStorage.getItem("puesto") == "Recepcion") {
-      this.router.navigate(['recepcion/entradas-salidas']);
-    } else if (localStorage.getItem("puesto") == "Desarrollo Institucional") {
-      this.router.navigate(['/donacion/agregar-donante']);
-    } else if (localStorage.getItem("puesto") == "Desarrollo Humano") {
-      this.router.navigate(['/desarrollo_humano']);
-    } else if (localStorage.getItem("puesto") == "Coordinacion Operativa") {
-      this.router.navigate(['/coordinacion_operativa']);
-    }
+  verificacion_sesion(){ 
+        if (localStorage.getItem('miembroID') == null){
+          return;}
+          else{
+      var response = this.http.get(this.url + "Usuario/id?id=" + localStorage.getItem('miembroID'), this.httpOptions);
+      response.subscribe((data: any[]) => {
+        this.resultado = data;
+        console.log(this.resultado);
+        if (this.resultado != "Sesión invalida") {  
+         if (localStorage.getItem("puesto") == "Administrador") {
+            this.router.navigate(['']);
+          } else if (localStorage.getItem("puesto") == "Recepcion") {
+            this.router.navigate(['recepcion/entradas-salidas']);
+          } else if (localStorage.getItem("puesto") == "Desarrollo Institucional") {
+            this.router.navigate(['/donacion/agregar-donante']);
+          } else if (localStorage.getItem("puesto") == "Desarrollo Humano") {
+            this.router.navigate(['/desarrollo_humano']);
+          } else if (localStorage.getItem("puesto") == "Coordinacion Operativa") {
+            this.router.navigate(['/coordinacion_operativa']);
+          }
+        }
+        else {
+          this.errmsg = 'Favor de iniciar sesión.';
+        }
+      },
+      error => {
+        this.errmsg = 'Favor de iniciar sesión.';
+        console.log("Error", error)
+      });
+    }    
   }
 
   correo_valido() {
     if (this.form_enviar_correo.invalid) {
       this.mostrar_alert("Rellena los campos", "danger")
       return;
-    }
-    
+    }    
     var spinner_correo = document.getElementById("spinner_correo");
     spinner_correo.removeAttribute("hidden");
 
@@ -109,28 +133,26 @@ export class LoginComponent implements OnInit {
     this.guardando = false;
   }
 
-  onSubmit() {
+  login(){
     this.errmsg = null;
     var spinner_login = document.getElementById("spinner_login");
     spinner_login.removeAttribute("hidden");
-    //select mediante el id
     this.remover();
-    var response = this.http.get(this.url + "Usuarioid?id=" + this.form.value.username + "&pass=" + this.form.value.password);
-    response.subscribe((data: any[]) => {
+		this.http.post(this.url + 'Usuarios?miembroID='+this.form.value.username+'&contrasena='+this.form.value.password, null).subscribe(data  => {
       this.resultado = data;
-      if (this.resultado[0] != undefined) {
-        localStorage.setItem('miembroID', this.resultado[0].miembroID);
-        localStorage.setItem('nombre', this.resultado[0].nombre);
-        localStorage.setItem('correo', this.resultado[0].correo);
-        localStorage.setItem('direccion', this.resultado[0].direccion);
-        localStorage.setItem('fechanacimiento', this.resultado[0].fechanacimiento);
-        localStorage.setItem('puesto', this.resultado[0].puesto);
-        localStorage.setItem('sede', this.resultado[0].sede);
+
+      if (this.resultado != null) {
+        localStorage.setItem('miembroID', this.resultado.miembroID);
+        localStorage.setItem('nombre', this.resultado.nombre);
+        localStorage.setItem('correo', this.resultado.correo);
+        localStorage.setItem('direccion', this.resultado.direccion);
+        localStorage.setItem('fechanacimiento', this.resultado.fechanacimiento);
+        localStorage.setItem('puesto', this.resultado.puesto);
+        localStorage.setItem('Authorization', this.resultado.token);
+        localStorage.setItem('sede', this.resultado.sede);
         spinner_login.setAttribute("hidden", "true");
 
-        if (localStorage.getItem("miembroID") == undefined || localStorage.getItem('miembroID') == null) {
-          this.errmsg = 'Constraseña o Usuario Incorrecto.';
-        } else if (localStorage.getItem("puesto") == "Administrador") {
+        if (localStorage.getItem("puesto") == "Administrador") {
           this.router.navigate(['']);
         } else if (localStorage.getItem("puesto") == "Recepcion") {
           this.router.navigate(['recepcion/entradas-salidas']);
@@ -141,80 +163,20 @@ export class LoginComponent implements OnInit {
         } else if (localStorage.getItem("puesto") == "Coordinacion Operativa") {
           this.router.navigate(['/coordinacion_operativa']);
         }
-      }
-      else {
+      } else{
         spinner_login.setAttribute("hidden", "true");
         this.errmsg = 'Constraseña o Usuario Incorrecto.';
       }
-    },
-    error => {
-      this.errmsg = 'Favor de ingresar un numero de miembro correcto.(Numerico)';
+      
+		},
+		error  => {      
       spinner_login.setAttribute("hidden", "true");
-      console.log("Error", error)
-    });
-
-  }
-
-  buscar_usuario() {
-    //select mediante el id
-    var response = this.http.get(this.url + "Usuarioid?id=" + this.form.value.username);
-    response.subscribe((data: any[]) => {
-      this.resultado = data;
-      localStorage.setItem('miembroID', this.resultado.miembroID);
-      localStorage.setItem('nombre', this.resultado.nombre);
-      localStorage.setItem('apellidos', this.resultado.apellidos);
-      localStorage.setItem('correo', this.resultado.correo);
-      localStorage.setItem('direccion', this.resultado.direccion);
-      localStorage.setItem('fechanacimiento', this.resultado.fechanacimiento);
-      localStorage.setItem('puesto', this.resultado.puesto);
-    },
-    error => {
-      console.log("Error", error)
-    });
-  }
+      this.errmsg = 'Favor de ingresar un numero de miembro correcto y/o verificar la conexion.';
+			console.log("Error", error);
+		});
+	}
 
   remover() {
     localStorage.clear()
   }
 }  
-
-
-
-// this.Userservice.postData(this.form.value).subscribe(respuesta => {
-  //   if (respuesta.status === 200) {
-    //            //get Usuario   
-    //     this.buscar_usuario();
-    //     this.successmsg = 'token - ' + respuesta.body.access_token;
-    //     localStorage.setItem('access_token', respuesta.body.access_token);        
-    //     //redireccion segun role de puesto storage
-    //     if (localStorage.getItem("puesto") == "Administrador") {
-      //       //componente general miss
-      //       this.router.navigate(['/agenda']);
-      //     }else if (localStorage.getItem("puesto") == "Recepcion") {
-        //       this.router.navigate(['/entradas-salidas']);
-        //     } else if (localStorage.getItem("puesto") == "Desarrollo Institucional") {
-          //       this.router.navigate(['/donacion/agregar-donante']);
-          //     }else if (localStorage.getItem("puesto") == "Desarrollo Humano") {
-            //       this.router.navigate(['/desarrollo_humano']);
-            //     }
-            //     else {
-              //       alert('Este Usuario no tiene asignado un Puesto.');
-              //     }
-              //     spinner_login.setAttribute("hidden", "true");
-              //   } else {
-                //     this.errmsg = respuesta.status + ' - ' + respuesta.statusText;
-                //     spinner_login.setAttribute("hidden", "true");
-                //   }
-                // },
-                //   err => {
-                  //     spinner_login.setAttribute("hidden", "true");
-                  //     if (err.status === 401) {
-                    //       this.errmsg = 'Contraseña o Usuario invalido.';
-                    //     }
-                    //     else if (err.status === 400) {
-                      //       this.errmsg = 'Contraseña o Usuario invalido.';
-                      //     }
-                      //     else {
-                        //       this.errmsg = "Contraseña o Usuario invalido";
-                        //     }
-                            //   });

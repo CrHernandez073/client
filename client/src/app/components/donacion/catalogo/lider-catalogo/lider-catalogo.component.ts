@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'lider-catalogo',
@@ -22,10 +23,18 @@ export class LiderCatalogoComponent implements OnInit {
   //validacion
   submit_buscar = false;
   submit_agregar = false;
+  
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder) {
+  constructor(private http: HttpClient, private formBuilder: FormBuilder,private router: Router) {
     this.get_nuevo_lider();
     this.get_Liders();
   }
@@ -66,9 +75,13 @@ export class LiderCatalogoComponent implements OnInit {
 
       spinner_buscar.removeAttribute("hidden");
       //select mediante el id
-      var response = this.http.get(this.url + "Lider/" + this.form_buscar.value.buscarID);
+      var response = this.http.get(this.url + "Lider/" + this.form_buscar.value.buscarID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
 
         this.form_agregar.get('liderID').setValue(this.resultado.liderID);
         this.form_agregar.get('descripcion').setValue(this.resultado.descripcion);
@@ -108,8 +121,13 @@ export class LiderCatalogoComponent implements OnInit {
 
   //Obtener nuevo Lider
   get_nuevo_lider() {
-    var response = this.http.get(this.url + "ultimoLider");
+    var response = this.http.get(this.url + "ultimoLider",this.httpOptions);
     response.subscribe((resultado: number) => {
+      this.resultado=resultado;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.form_agregar.get('liderID').setValue(resultado + 1);
     },
       error => {
@@ -118,9 +136,13 @@ export class LiderCatalogoComponent implements OnInit {
   }
   //List Lider
   get_Liders() {
-    var response = this.http.get(this.url + "lider/sede?Rsede="+localStorage.getItem('sede'));
+    var response = this.http.get(this.url + "lider/sede?Rsede="+localStorage.getItem('sede'),this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayLideres = data;
+      if (this.arrayLideres == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error)
@@ -131,7 +153,12 @@ export class LiderCatalogoComponent implements OnInit {
     //Spiner
     var spinner_agregar = document.getElementById("spinner_agregar");
     spinner_agregar.removeAttribute("hidden");
-    this.http.post(this.url + "Lider", this.form_agregar.value).subscribe(data => {
+    this.http.post(this.url + "Lider", this.form_agregar.value,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       spinner_agregar.setAttribute("hidden", "true");
       alert("Lider Guardado");
       this.clean_Agregar();
@@ -150,7 +177,12 @@ export class LiderCatalogoComponent implements OnInit {
     spinner_agregar.removeAttribute("hidden");
 
     //Update mediante el id y los campos de agregar
-    this.http.put(this.url + "Lider/" + this.form_buscar.value.buscarID, this.form_agregar.value).subscribe(data => {
+    this.http.put(this.url + "Lider/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       spinner_agregar.setAttribute("hidden", "true");
       alert("Evento Modificado");
       this.get_Liders();
@@ -202,8 +234,13 @@ export class LiderCatalogoComponent implements OnInit {
       return;
     }
     else {
-      var response = this.http.delete(this.url + "Lider/" + id);
+      var response = this.http.delete(this.url + "Lider/" + id,this.httpOptions);
       response.subscribe((data: any[]) => {
+        this.resultado=data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
         alert("Se a eliminado el Lider: " + id);
         this.get_Liders();
         this.get_nuevo_lider();

@@ -15,6 +15,7 @@
       <select formControlName="estado" class="custom-select"
         [ngClass]="{ 'is-invalid': submit_agregar && f_A.estado.errors }">
         <option selected disabled>Seleccione</option>
+        <option value="null">Todos</option>
         <option value="true">Activos</option>
         <option value="false">Inactivos</option>
       </select>
@@ -168,7 +169,12 @@
             <tr *ngFor="let inf of informe; let i=index">
               <td>{{inf.miembro.miembro.idNinosDG}}</td>
               <td>{{inf.miembro.miembro.sede}}</td>
-              <td>{{inf.miembro.miembro.estado}}</td>
+              <td *ngIf="inf.miembro.miembro.estado == true">
+                Activo
+            </td>
+            <td *ngIf="inf.miembro.miembro.estado != true">
+               Inactivo
+            </td>
               <td>{{inf.miembro.miembro.nombrenino}}</td>
               <td>{{inf.miembro.miembro.turno_asiste}}</td>
               <td>{{inf.miembro.miembro.fechanacimiento | date:'dd/MM/yyyy'}}</td>

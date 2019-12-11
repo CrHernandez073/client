@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-config-donacion',
@@ -11,17 +12,24 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 export class ConfigDonacionComponent implements OnInit {
 //busqueda
 resultado: any;
-tipo:number=0;
+tipo: number=0;
   //Formularios
   form_config : FormGroup;
   
   //validacion
 	submit_config= false;
 
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient,private formBuilder: FormBuilder ) { 
+  constructor(private http: HttpClient,private formBuilder: FormBuilder,private router: Router ) { 
         
   }
 
@@ -63,14 +71,15 @@ tipo:number=0;
   }  
 
 	buscar_usuario(){
-	  this.submit_config = true;
-  
+	  this.submit_config = true;  
      //select mediante el id
-     console.log(this.form_config.value.miembroID);
-      var response = this.http.get(this.url + "Usuario/id?id=" + this.form_config.value.miembroID);
+      var response = this.http.get(this.url + "Usuario/id?id=" + this.form_config.value.miembroID,this.httpOptions);
      response.subscribe((data: any[]) => {
        this.resultado = data;
-       console.log(this.resultado);
+       if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
        //transformar fecha formato
        var datePipe = new DatePipe("en-US");
        this.resultado[0].fechanacimiento = datePipe.transform(this.resultado[0].fechanacimiento, 'yyyy-MM-dd');
@@ -109,7 +118,11 @@ tipo:number=0;
     spinner_config.removeAttribute("hidden");
 
     //Update mediante el id y los campos de agregar
-    this.http.put(this.url + "Usuarios/" + localStorage.getItem("miembroID"), this.form_config.value).subscribe(data => {
+    this.http.put(this.url + "Usuarios/" + localStorage.getItem("miembroID"), this.form_config.value,this.httpOptions).subscribe(data => {
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       spinner_config.setAttribute("hidden", "true");
       alert("Usuario Modificado Correctamente.");
     },

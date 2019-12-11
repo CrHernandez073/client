@@ -6,3 +6,9 @@
     font-family: Arial, Helvetica, sans-serif;
     color:rgb(0, 0, 0);
 }
+.admin {
+	display:scroll;
+	position:fixed;
+	bottom: 5%;
+	left: 2%;
+}

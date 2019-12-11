@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'dfiscales-donante',
@@ -47,9 +48,17 @@ visible: boolean=false;
 mensaje: string;
 tipo:any;
 
+httpOptions = {
+  headers: new HttpHeaders({
+    'Content-Type':  'application/json',
+    'miembroID': localStorage.getItem('miembroID'),
+    'Authorization': localStorage.getItem('Authorization')
+  })
+};
+
 url = "https://api-remota.conveyor.cloud/api/";
 
-constructor(private http: HttpClient, private formBuilder: FormBuilder) { }
+constructor(private http: HttpClient, private formBuilder: FormBuilder,private router: Router) { }
 
 ngOnInit() {
   //Se rellena los campos al formulario 
@@ -60,7 +69,7 @@ ngOnInit() {
 
   //agregar
   this.form_agregar = this.formBuilder.group({
-    datosfiscalesID:[''],
+    datosfiscalesID:['', Validators.required],
     donacionID: ['', Validators.required],
     rfc :['', Validators.required],
     nombre :['', Validators.required],
@@ -105,9 +114,14 @@ cerrar_alert(){
 }
 
 traer_donante(){
-  var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID);
+  var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
       this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
       this.form_agregar.get('nombre_donante').setValue(this.resultado[0].nombres);
     },
@@ -126,9 +140,14 @@ buscar_dfiscales() {
   else {
     spinner_buscar_dfiscales.removeAttribute("hidden");
     //select mediante el id
-    var response = this.http.get(this.url + "DFiscal/" + this.form_buscar.value.buscarID);
+    var response = this.http.get(this.url + "DFiscal/" + this.form_buscar.value.buscarID,this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
 
       this.form_agregar.get('datosfiscalesID').setValue(this.resultado.datosfiscalesID);
       this.form_agregar.get('donacionID').setValue(this.resultado.donacionID);
@@ -157,17 +176,23 @@ buscar_dfiscales() {
 }
 
 modificar_dfiscales() {
-  this.submit_agregar=false;
+  this.submit_agregar = false;
   if (this.form_agregar.invalid) {
-    this.submit_agregar=true;
-    alert('Error');
+    this.submit_agregar = true;
+    this.mostrar_alert("Ocurrió un error, Favor de llenar los campos requeridos.", 'danger', 5000, null);
     return;
   }
   var spinner_agregar_dfiscales = document.getElementById("spinner_agregar_dfiscales");
   spinner_agregar_dfiscales.removeAttribute("hidden");
 
   //Update mediante el id y los campos de agregar
-  this.http.put(this.url + "DFiscal/" + this.form_buscar.value.buscarID, this.form_agregar.value).subscribe(data => {
+  this.http.put(this.url + "DFiscal/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
+    this.resultado=data;
+    if (this.resultado == "Sesión invalida") {          
+      this.router.navigate(['/login']);
+      return;
+     }
+
     spinner_agregar_dfiscales.setAttribute("hidden", "true");
     
     this.mostrar_alert("Datos Fiscales modificados.", 'primary', 5000, null);

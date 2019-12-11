@@ -3,7 +3,7 @@ import { OptionsInput } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders  } from '@angular/common/http';
 import interactionPlugin from '@fullcalendar/interaction';
 import { MyserviceService } from '../../../myservice.service';
 import { Router } from '@angular/router';
@@ -34,6 +34,19 @@ export class AgendaDHComponent implements OnInit {
   submit_buscar = false;
   submit_agregar = false;
 
+  //alert
+  visible: boolean=false;
+  mensaje: string;
+  tipo:any;
+
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
+
   //Usuario logueado  
   miembroID= localStorage.getItem("miembroID");
 
@@ -42,7 +55,7 @@ export class AgendaDHComponent implements OnInit {
 
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder, private userService: MyserviceService ) {
+  constructor(private router: Router,private http: HttpClient, private formBuilder: FormBuilder, private userService: MyserviceService ) {
 
   }
   ngOnInit() {
@@ -66,7 +79,7 @@ export class AgendaDHComponent implements OnInit {
       start: ['',Validators.required],
       end: [''],
       ubicacion: [''],
-      email: [''],
+      email: ['',[Validators.pattern("^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$")]],
       usuarioID: [this.miembroID],
       color: ['#ffffff'],
       sede:[localStorage.getItem("sede")],
@@ -90,14 +103,17 @@ get f_B() {
   //asignacion de color a var
   public onEventLog(data: any): void {
     this.form_agregar.get('color').setValue(data);
-    console.log(this.form_agregar.value.color);
   }
 
   buscar_agenda() {
     //select mediante el id
-    var response = this.http.get(this.url + "Agenda/" + this.form_buscar.value.buscarID);
-    response.subscribe((data: any[]) => {
+    var response = this.http.get(this.url + "Agenda/" + this.form_buscar.value.buscarID, this.httpOptions);
+    response.subscribe((data: any[]) => {      
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       //transformar fecha formato
       var datePipe = new DatePipe("en-US");
       this.resultado.start = datePipe.transform(this.resultado.start, 'yyyy-MM-dd');
@@ -117,17 +133,23 @@ get f_B() {
         this.focus = false;
         this.agregar_o_modificar = 'modificar';
       }
+      this.mostrar_alert("Busqueda Exitosa", 'primary', 5000, null);
     },
-      error => {
+      error => {        
+        this.mostrar_alert("Error. Favor de verificar los campos y/o la conexion", 'danger', 5000, null);
         console.log("Error", error)
       });
   }
 
   modif_agenda(id:any) {
     //select mediante el id
-    var response = this.http.get(this.url + "Agenda/" + id);
+    var response = this.http.get(this.url + "Agenda/" + id, this.httpOptions);
     response.subscribe((data: any[]) => {
       this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       //transformar fecha formato
       var datePipe = new DatePipe("en-US");
       this.resultado.start = datePipe.transform(this.resultado.start, 'yyyy-MM-dd');
@@ -147,8 +169,11 @@ get f_B() {
         this.focus = false;
         this.agregar_o_modificar = 'modificar';
       }
+      
+      this.mostrar_alert("Registro Obtenido. Listo para modificación.", 'success', 5000, null);
     },
       error => {
+        this.mostrar_alert("Error. Favor de verificar los campos y/o la conexion", 'danger', 5000, null);
         console.log("Error", error)
       });
   }
@@ -159,15 +184,21 @@ get f_B() {
       return;
     }
     else {
-      var response = this.http.delete(this.url + "Agenda/" + id);
-      response.subscribe((data: any[]) => {
-        alert("Se a eliminado el Evento: " + id);
+      var response = this.http.delete(this.url + "Agenda/" + id, this.httpOptions);
+      response.subscribe((data: any[]) => {  
+        this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }      
+      this.mostrar_alert("Se a eliminado el Evento: " + id, 'primary', 15000, null);
         this.get_mieventos();
         this.get_todoseventos();
         this.get_all_agenda();
         this.get_calendario();
       },
         error => {
+          this.mostrar_alert("Error. Favor de verificar los campos y/o la conexion", 'danger', 5000, null);
           console.log("Error", error)
         });
     }
@@ -175,7 +206,8 @@ get f_B() {
 
   opcion_agenda() {
     this.submit_agregar = true;
-    if (this.form_agregar.invalid) {
+    if (this.form_agregar.invalid) {      
+      this.mostrar_alert("Error. Favor de llenar los campos requeridos.", 'danger', 5000, null);
       return;
     }
     else {
@@ -196,9 +228,14 @@ get f_B() {
   }
   
   agregar_agenda() {
-    this.get_nuevo_agenda();
+    this.get_nuevo_agenda();  
     //verificar la fecha 
-    this.http.post(this.url + "Agenda", this.form_agregar.value).subscribe(data => {
+    this.http.post(this.url + "Agenda", this.form_agregar.value, this.httpOptions).subscribe(data => { 
+      this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       alert("Se a registrado el Evento correctamente. ");
       this.clean_Agregar();
       this.form_agregar.get('usuarioID').setValue(this.miembroID);
@@ -209,11 +246,17 @@ get f_B() {
       this.get_calendario();
     },
       error => {
+        this.mostrar_alert("Error. Favor de verificar los campos y/o la conexion", 'danger', 5000, null);
         console.log("Error", error);
       });
   }
   modificar_agenda() {
-    this.http.put(this.url + "Agenda/" + this.form_agregar.value.agendaID, this.form_agregar.value).subscribe(data => {
+    this.http.put(this.url + "Agenda/" + this.form_agregar.value.agendaID, this.form_agregar.value, this.httpOptions).subscribe(data => {
+      this.resultado = data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       alert("Evento Modificado");
       this.get_mieventos();
       this.get_todoseventos();
@@ -221,6 +264,7 @@ get f_B() {
       this.get_calendario();
     },
       error => {
+        this.mostrar_alert("Error. Favor de verificar los campos y/o la conexion", 'danger', 5000, null);
         console.log("Error", error);
       });
   }
@@ -242,11 +286,17 @@ get f_B() {
   }
 
   get_nuevo_agenda() {
-    var response = this.http.get(this.url + "ultimo_agenda");
+    var response = this.http.get(this.url + "ultimo_agenda", this.httpOptions);
     response.subscribe((resultado: number) => {
+      this.resultado = resultado;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.form_agregar.get('agendaID').setValue(resultado + 1);
     },
       error => {
+        this.mostrar_alert("Error. Favor de verificar los campos y/o la conexion", 'danger', 5000, null);
         console.log("Error", error)
       });
   }
@@ -255,9 +305,13 @@ get f_B() {
 
 //mis eventos
   get_mieventos() {
-    var response = this.http.get(this.url + "Registro_agenda?id=" + this.form_agregar.value.usuarioID);
+    var response = this.http.get(this.url + "Registro_agenda?id=" + this.form_agregar.value.usuarioID, this.httpOptions);
     response.subscribe((data: any[]) => {
       this.mievento = data;
+      if (this.mievento == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error)
@@ -266,9 +320,13 @@ get f_B() {
 
   //eventos x sede
   get_todoseventos() {
-    var response = this.http.get(this.url + "Eventos?Rsede="+this.form_agregar.value.sede);
+    var response = this.http.get(this.url + "Eventos?Rsede="+this.form_agregar.value.sede, this.httpOptions);
     response.subscribe((data: any[]) => {
       this.todoseventos = data;
+      if (this.todoseventos == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error)
@@ -276,9 +334,13 @@ get f_B() {
   }
   //toda las agendas order(sede)
   get_all_agenda() {
-    var response = this.http.get(this.url + "all/agenda");
+    var response = this.http.get(this.url + "all/agenda", this.httpOptions);
     response.subscribe((data: any[]) => {
       this.todo = data;
+      if (this.todo == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error)
@@ -286,9 +348,13 @@ get f_B() {
   }
   //llenar calendario x sede
   get_calendario() {
-    var response = this.http.get(this.url + "Eventos?Rsede="+this.form_agregar.value.sede);
+    var response = this.http.get(this.url + "Eventos?Rsede="+this.form_agregar.value.sede, this.httpOptions);
     response.subscribe((data: any[]) => {
-      this.calendario=data
+      this.calendario=data;
+      if (this.calendario == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       //transformar fecha formato
       var datePipe = new DatePipe("en-US");
       for (let entry of this.calendario) {
@@ -340,6 +406,20 @@ get f_B() {
     this.get_todoseventos();
     this.get_all_agenda();
   }
+  mostrar_alert(msg : string, tipo : string, duracion : number, accion : string){
+		this.visible = true;
+		this.mensaje = msg;
+		this.tipo = tipo;
+
+		setTimeout(() => { 
+			this.cerrar_alert();
+		}, duracion
+		);
+  }
+  cerrar_alert(){
+		this.visible = false;
+		this.mensaje = null;
+		this.tipo = null;
+  }
 
 }
-

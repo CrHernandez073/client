@@ -7,11 +7,16 @@ import { Router } from '@angular/router';
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit {
-
+  puesto:any;
   constructor(private router: Router) { }
 
   ngOnInit() {
-  }
+    this.puesto=localStorage.getItem('puesto');
+	}
+
+	redireccion_menu(){
+		this.router.navigate(['']);
+	}
 
   cerrar(){
     localStorage . clear(); 

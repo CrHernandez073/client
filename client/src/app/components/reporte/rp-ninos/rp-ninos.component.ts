@@ -6,7 +6,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { autoTable as AutoTable } from 'jspdf-autotable';
 import { ExcelService } from '../../../excel.service';
@@ -26,7 +26,12 @@ export class RpNinosComponent implements OnInit {
   promedio_matutino: any;
   promedio_vespertino: any;
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder, private excelService: ExcelService) {
+  constructor(
+    private http: HttpClient,
+    private formBuilder: FormBuilder, 
+    private excelService: ExcelService, 
+    private router: Router
+    ) {
   }
   //busqueda
   informe: any;
@@ -40,6 +45,14 @@ export class RpNinosComponent implements OnInit {
   //validacion
   submit_agregar = false;
   submit_nino = false;
+
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
@@ -167,8 +180,6 @@ export class RpNinosComponent implements OnInit {
       doc.setTextColor(40);
       doc.setFontStyle('normal');
 
-      //https://www.youtube.com/watch?v=7hUr0P9nHF8
-
       doc.addImage(img, 'PNG', data.settings.margin.left, 15, 50, 10);
       doc.text(registros, data.settings.margin.left + 60, 22);
 
@@ -268,11 +279,15 @@ export class RpNinosComponent implements OnInit {
       + '&Rmedicamento=' + this.form_report.value.medicamento
       + '&Rcuidadoespc=' + this.form_report.value.cuidado_especial
       + '&Restado=' + this.form_report.value.estado
-      + '&Rsede=' + this.form_report.value.sede
+      + '&Rsede=' + this.form_report.value.sede, this.httpOptions
     );
 
     response.subscribe((data: any[]) => {
       this.informe = data;
+      if (this.informe == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.contador = data.length;
     },
       error => {
@@ -307,11 +322,15 @@ export class RpNinosComponent implements OnInit {
       var response = this.http.get(this.url
         + 'Nino/sede/total?Rsede=' + this.form_ninos.value.seder
         + '&fecha1=' + this.fecha1
-        + '&fecha2=' + this.fecha2
+        + '&fecha2=' + this.fecha2, this.httpOptions
       );
 
       response.subscribe((data: any[]) => {
         this.informe_asistensia = data;
+        if (this.informe_asistensia == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
       },
         error => {
           console.log("Error", error)
@@ -335,11 +354,15 @@ export class RpNinosComponent implements OnInit {
       var response = this.http.get(this.url
         + 'Nino/sede/total/asistencia?Rsede=' + this.form_ninos.value.seder
         + '&fecha1=' + this.fecha1
-        + '&fecha2=' + this.fecha2
+        + '&fecha2=' + this.fecha2, this.httpOptions
       );
 
       response.subscribe((data: any[]) => {
         this.informe_asistensia2 = data;
+        if (this.informe_asistensia2 == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
         this.promedio_matutino = this.informe_asistensia2.count_asistensia_Matutinos_fecha / this.informe_asistensia.count_total_matutino_activos;
         this.promedio_vespertino = this.informe_asistensia2.count_asistensia_Vespertino_fecha / this.informe_asistensia.count_total_vespertino_activos;
 

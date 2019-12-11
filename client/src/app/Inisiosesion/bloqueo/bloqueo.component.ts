@@ -21,12 +21,13 @@ export class BloqueoComponent implements OnInit {
     this._location.back();
   }
   go(){
+    localStorage . clear(); 
     this.router.navigate(['/login']);
   }
   home(){
     if (localStorage.getItem('puesto')== "Administrador" ){
         //ruta home administrador
-        this.router.navigate(['/login']);
+        this.router.navigate(['']);
     } else if(localStorage.getItem('puesto')== "Recepcion"){
       //ruta home Recepcion
       this.router.navigate(['/recepcion/agregar-modificar']);
@@ -43,4 +44,5 @@ export class BloqueoComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 }
+
 }

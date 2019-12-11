@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'campana-catalogo',
@@ -28,12 +29,20 @@ agregar_o_modificar: string = 'nuevo';
   submit_buscar = false;
 	submit_agregar= false;
 
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
   constructor(
     private http: HttpClient,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private router: Router
 
   ) { 
     this.get_nuevo_campana();
@@ -80,9 +89,14 @@ agregar_o_modificar: string = 'nuevo';
 
      spinner_buscar_campana.removeAttribute("hidden");
      //select mediante el id
-     var response = this.http.get(this.url + "Campana/" + this.form_buscar.value.buscarID);
+     var response = this.http.get(this.url + "Campana/" + this.form_buscar.value.buscarID,this.httpOptions);
      response.subscribe((data: any[]) => {
        this.resultado = data;
+       if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
        //transformar fecha formato
        var datePipe = new DatePipe("en-US");
        this.resultado.fecha = datePipe.transform(this.resultado.fecha, 'yyyy-MM-dd');
@@ -127,8 +141,14 @@ agregar_o_modificar: string = 'nuevo';
 
   //Obtener nuevo Lider
   get_nuevo_campana() {
-    var response = this.http.get(this.url + "ultimoCampana");
+    var response = this.http.get(this.url + "ultimoCampana",this.httpOptions);
     response.subscribe((resultado: number) => {
+      this.resultado=resultado;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
       this.form_agregar.get('campanaID').setValue(resultado + 1);
     },
       error => {
@@ -137,9 +157,14 @@ agregar_o_modificar: string = 'nuevo';
   }
   //List Lider
   get_Campana() {
-    var response = this.http.get(this.url + "campana/sede?Rsede="+localStorage.getItem('sede'));
+    var response = this.http.get(this.url + "campana/sede?Rsede="+localStorage.getItem('sede'),this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayCampana = data;
+      if (this.arrayCampana == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
     },
       error => {
         console.log("Error", error)
@@ -150,7 +175,13 @@ agregar_o_modificar: string = 'nuevo';
 	//Spiner
   var spinner_agregar_campana = document.getElementById("spinner_agregar_campana");
   spinner_agregar_campana.removeAttribute("hidden");
-  this.http.post(this.url + "Campana", this.form_agregar.value).subscribe(data => {
+  this.http.post(this.url + "Campana", this.form_agregar.value,this.httpOptions).subscribe(data => {
+    this.resultado=data;
+    if (this.resultado == "Sesión invalida") {          
+      this.router.navigate(['/login']);
+      return;
+     }
+
     spinner_agregar_campana.setAttribute("hidden", "true");
     alert("Campaña Guardado");
     this.clean_Agregar();
@@ -170,7 +201,14 @@ agregar_o_modificar: string = 'nuevo';
     spinner_agregar_campana.removeAttribute("hidden");
 
     //Update mediante el id y los campos de agregar
-    this.http.put(this.url + "Campana/" + this.form_buscar.value.buscarID, this.form_agregar.value).subscribe(data => {
+    this.http.put(this.url + "Campana/" + this.form_buscar.value.buscarID, this.form_agregar.value,this.httpOptions).subscribe(data => {
+      
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
+
       spinner_agregar_campana.setAttribute("hidden", "true");
       alert("Campaña Modificado");
       this.get_Campana();
@@ -222,8 +260,14 @@ agregar_o_modificar: string = 'nuevo';
       return;
     }
     else {
-      var response = this.http.delete(this.url + "Campana/" + id);
+      var response = this.http.delete(this.url + "Campana/" + id,this.httpOptions);
       response.subscribe((data: any[]) => {
+        this.resultado=data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
+  
         alert("Se a eliminado la Campaña: " + id);
         this.get_Campana();
         this.get_nuevo_campana();

@@ -109,20 +109,22 @@
     </form>
 </div>
 <div class="container border rounded">    
-  <button id="btn_refrescar" type="button" class="btn btn-info btn-sm" (click)="buscar_usuario()">Refrescar</button>
+ 
     <div class="row" style="margin: 15px 15px 0px 0px">
-        <div class="col-12 text-left " style="margin: 0px 0px 0px 0px;">
+        <div class="col-10 text-left " style="margin: 0px 0px 0px 0px;">
             <label class="font-weight-bold">Usuarios: </label>
+        </div>
+        <div class="col">
+            <button id="btn_refrescar" type="button" class="btn btn-info" (click)="buscar_usuario()">Refrescar</button>
         </div>
         <div class="col-12" style="overflow-x:auto; overflow-y:auto;">
             <form>
-                <table class="table text-center table-bordered table-sm rounded">
+                <table class="table text-center table-bordered table-sm rounded" >
                     <thead style="background-color: #00AAE7; color: white;">
                         <tr>
-                                <th scope="col">Usuario ID</th>
+                                <th scope="col">Miembro ID</th>
                                 <th scope="col">Puesto</th>
                             <th scope="col">Nombre</th>
-                            <th scope="col">Apellidos</th>
                             <th scope="col">Sede</th>
                             <th scope="col">Actualmente</th>
                             <th scope="col">Correo</th>
@@ -135,11 +137,15 @@
                     <tbody>
                         <tr *ngFor="let result of resultado; let i=index">
                             <th scope="row">{{result.usuarioID}}</th>
-                            <td>{{result.puesto}}</td>
-                            <td>{{result.nombre}}</td>
-                            <td>{{result.apellidos}}</td>
+                            <td>{{result.puesto}} </td>
+                            <td>{{result.nombre}} {{result.apellidos}}</td>
                             <td >{{result.sede}}</td>
-                            <td >{{result.status}}</td>
+                            <td *ngIf="result.status == true">
+                                Activo
+                            </td>
+                            <td *ngIf="result.status != true">
+                               Inactivo
+                            </td>
                             <td>{{result.correo}}</td>
                             <td>{{result.fechanacimiento | date:'dd/MM/yyyy'}}</td>
                             <td>{{result.tel1}}</td>

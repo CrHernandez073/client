@@ -23,6 +23,9 @@
   </form>
 
   <form [formGroup]="form_agregar" (ngSubmit)="opcion_agenda()">
+      <div style="margin: 0px 30px 0px 15px;" class="text-center">
+          <ngb-alert *ngIf="visible==true" (close)="cerrar_alert()" type="{{tipo}}">{{mensaje}}</ngb-alert>
+        </div>
     <!-- INICIO ROW #1 -->
     <div class="dropdown-divider"></div>
     <div class="row" style="margin: 15px 0px 0px 15px">
@@ -116,8 +119,8 @@
             <tbody>
               <tr *ngFor="let evento of mievento; let i=index">
                 <td>{{evento.title}}</td>
-                <td>{{evento.start | date:'yyyy/MM/dd'}}</td>
-                <td>{{evento.end | date:'yyyy/MM/dd'}}</td>
+                <td>{{evento.start | date:'dd/MM/yyyy'}}</td>
+                <td>{{evento.end | date:'dd/MM/yyyy'}}</td>
                 <td>{{evento.ubicacion}}</td>
                 <td>{{evento.email }}</td>
                 <td>
@@ -171,8 +174,8 @@
               <tr *ngFor="let events of todoseventos; let i=index">
                 <th scope="row">{{events.usuarioID}}</th>
                 <td>{{events.title}}</td>
-                <td>{{events.start | date:'yyyy/MM/dd'}}</td>
-                <td>{{events.end | date:'yyyy/MM/dd'}}</td>
+                <td>{{events.start | date:'dd/MM/yyyy'}}</td>
+                <td>{{events.end | date:'dd/MM/yyyy'}}</td>
                 <td>{{events.sede}}</td>
                 <td>{{events.ubicacion}}</td>
                 <td>{{events.email }}</td>
@@ -214,8 +217,8 @@
               <tr *ngFor="let events of todo; let i=index">
                 <th scope="row">{{events.usuarioID}}</th>
                 <td>{{events.title}}</td>
-                <td>{{events.start | date:'yyyy/MM/dd'}}</td>
-                <td>{{events.end | date:'yyyy/MM/dd'}}</td>
+                <td>{{events.start | date:'dd/MM/yyyy'}}</td>
+                <td>{{events.end | date:'dd/MM/yyyy'}}</td>
                 <td>{{events.sede}}</td>
                 <td>{{events.ubicacion}}</td>
                 <td>{{events.email }}</td>

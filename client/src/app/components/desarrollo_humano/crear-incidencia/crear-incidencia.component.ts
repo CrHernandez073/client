@@ -26,8 +26,18 @@ export class CrearIncidenciaComponent implements OnInit {
 	submitted = false;
 
 	duracion : number = 3000;
+<<<<<<< HEAD
 
 
+=======
+	httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': "139",
+			'Authorization': '996c7324-9087-47b9-a9cc-fb0da458f89f'
+		})
+	};
+>>>>>>> 5f43ecfa3ad5f553b899e547c8d1fcbb21673b83
 	constructor(
 		private http : HttpClient,
 		private formBuilder: FormBuilder
@@ -71,6 +81,7 @@ export class CrearIncidenciaComponent implements OnInit {
 		if (miembroID == "") 
 			return;
 
+<<<<<<< HEAD
 		const httpOptions = {
 			headers: new HttpHeaders({
 				'Content-Type':  'application/json',
@@ -80,6 +91,9 @@ export class CrearIncidenciaComponent implements OnInit {
 		};
 
 		var response = this.http.get(this.url + controlador+ "?id=" + miembroID, httpOptions );
+=======
+		var response = this.http.get(this.url + controlador+ "?id=" + miembroID, this.httpOptions );
+>>>>>>> 5f43ecfa3ad5f553b899e547c8d1fcbb21673b83
 		response.subscribe((resultado : any)=> {
 			this.form_guardar.patchValue(resultado);
 			console.log(this.url + controlador+ "?id=" + miembroID);
@@ -156,4 +170,16 @@ export class CrearIncidenciaComponent implements OnInit {
 		var input = document.getElementById("miembroID");
 		input.focus();
 	}
+	login(){
+		this.http.post(this.url + 'Usuarios?miembroID=139&contrasena=1234', null).subscribe(data  => {
+			console.log(data)
+		},
+		error  => {
+			this.mostrar_alert("Ocurrió un error, inténtalo mas tarde", 'danger');
+			//spinner.setAttribute("hidden", "true");
+			this.form_guardar.enable();
+			console.log("Error al guardar en la tabla miembro", error);
+		});
+	}
+	
 }

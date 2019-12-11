@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-contenedor-admin',
@@ -7,9 +8,16 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ContenedorAdminComponent implements OnInit {
 
-  constructor() { }
+  puesto: any;
+
+  constructor(private router: Router) { }
 
   ngOnInit() {
+    
+		this.puesto=localStorage.getItem('puesto');
   }
+  redireccion_menu(){
+		this.router.navigate(['']);
+	}
 
 }

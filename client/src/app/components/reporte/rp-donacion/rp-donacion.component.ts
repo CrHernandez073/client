@@ -6,7 +6,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { autoTable as AutoTable } from 'jspdf-autotable';
 import { ExcelService } from '../../../excel.service';
@@ -21,7 +21,12 @@ export class RpDonacionComponent implements OnInit {
   data: any;
   nombre: any;
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder, private excelService: ExcelService) {
+  constructor(
+    private http: HttpClient,
+    private formBuilder: FormBuilder, 
+    private excelService: ExcelService, 
+    private router: Router
+    ) {
     this.get_Lider();
     this.get_Eventoe();
     this.get_Campana();
@@ -39,6 +44,14 @@ export class RpDonacionComponent implements OnInit {
 
   //validacion
   submit_agregar = false;
+
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
@@ -258,12 +271,16 @@ export class RpDonacionComponent implements OnInit {
       + "&RPais=" + this.form_report.value.pais
       + "&REstado=" + this.form_report.value.estado
       + "&RMunicipio=" + this.form_report.value.municipio
-      + "&Rsede="+this.form_report.value.sede
+      + "&Rsede="+this.form_report.value.sede,this.httpOptions
     );
 
 
     response.subscribe((data: any[]) => {
       this.informe = data;
+      if (this.informe == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.contador = data.length;
     },
       error => {
@@ -274,28 +291,39 @@ export class RpDonacionComponent implements OnInit {
   }
 
   get_Lider() {
-    var response = this.http.get(this.url + "Lider/");
+    var response = this.http.get(this.url + "Lider/",this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayLideres = data;
+      if (this.arrayLideres == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error)
       });
   }
   get_Campana() {
-    var response = this.http.get(this.url + "Campana/");
+    var response = this.http.get(this.url + "Campana/",this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayCampanas = (data);
+      if (this.arrayCampanas == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error)
       });
   }
   get_Eventoe() {
-    var response = this.http.get(this.url
-      + "Eventoe/");
+    var response = this.http.get(this.url + "Eventoe/",this.httpOptions);
     response.subscribe((data: any[]) => {
       this.arrayEventos = (data);
+      if (this.arrayEventos == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
     },
       error => {
         console.log("Error", error)

@@ -1,8 +1,9 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbDateAdapter, NgbDateStruct, NgbDateNativeAdapter } from '@ng-bootstrap/ng-bootstrap';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'contacto-donante',
@@ -49,9 +50,16 @@ cambiar_valor_Padre(){
   mensaje: string;
   tipo:any;
 
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
   url = "https://api-remota.conveyor.cloud/api/";
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder) { }
+  constructor(private http: HttpClient, private formBuilder: FormBuilder,private router: Router) { }
 
   ngOnInit() {
     //Se rellena los campos al formulario 
@@ -62,7 +70,7 @@ cambiar_valor_Padre(){
 
     //agregar
     this.form_agregar = this.formBuilder.group({
-      contactoID: [''],
+      contactoID: ['', Validators.required],
       donacionID: ['', Validators.required],
       nombre1: ['', Validators.required],
       paterno1: ['', Validators.required],
@@ -114,9 +122,13 @@ cambiar_valor_Padre(){
   }
 
   traer_donante(){
-    var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID);
+    var response = this.http.get(this.url + "get/nombre?RDonID=" + this.form_buscar.value.buscarID,this.httpOptions);
       response.subscribe((data: any[]) => {
         this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
         this.form_agregar.get('nombre_Fiscal').setValue(this.resultado[0].nombrefiscal);
         this.form_agregar.get('nombre_donante').setValue(this.resultado[0].nombres);
       },
@@ -147,9 +159,17 @@ cambiar_valor_Padre(){
     this.submit_buscar = true;
       spinner_buscar_contacto.removeAttribute("hidden");
       //select mediante el id
-      var response = this.http.get(this.url + "Contacto/" + this.form_buscar.value.buscarID);
+      var response = this.http.get(this.url + "Contacto/" + this.form_buscar.value.buscarID,this.httpOptions);
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       response.subscribe((data: any[]) => {
         this.resultado = data;
+        if (this.resultado == "Sesión invalida") {          
+          this.router.navigate(['/login']);
+          return;
+         }
         //transformar fecha formato
         var datePipe = new DatePipe("en-US");
         this.resultado.fechanacimiento1 = datePipe.transform(this.resultado.fechanacimiento1, 'yyyy-MM-dd');
@@ -205,13 +225,18 @@ cambiar_valor_Padre(){
     this.submit_agregar = false;
     if (this.form_agregar.invalid) {
       this.submit_agregar = true;
-      alert('Error.');
+      this.mostrar_alert("Ocurrió un error, Favor de llenar los campos requeridos.", 'danger', 5000, null);
       return;
     }
     var spinner_agregar_fdonante = document.getElementById("spinner_agregar_fdonante");
     spinner_agregar_fdonante.removeAttribute("hidden");
     //Update mediante el id y los campos de agregar
-    this.http.put(this.url + "Contacto/" + this.form_agregar.value.donacionID, this.form_agregar.value).subscribe(data => {
+    this.http.put(this.url + "Contacto/" + this.form_agregar.value.donacionID, this.form_agregar.value,this.httpOptions).subscribe(data => {
+      this.resultado=data;
+      if (this.resultado == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       spinner_agregar_fdonante.setAttribute("hidden", "true");
       
         this.mostrar_alert("Contacto modificado.", 'primary', 5000, null);

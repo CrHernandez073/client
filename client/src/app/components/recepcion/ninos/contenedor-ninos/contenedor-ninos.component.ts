@@ -1,6 +1,7 @@
 import { Component, OnInit,Input, Output } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms'
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
 	selector: 'contenedor-ninos',
@@ -28,17 +29,26 @@ export class ContenedorNinosComponent implements OnInit {
 	tipo : string = null;
 	mensaje : string = null;
 
+	puesto: any;
 
 	constructor(
 		private http : HttpClient, 
-		private formBuilder: FormBuilder
-		) { }
+		private formBuilder: FormBuilder,
+		private router: Router
+		) { 
+			
+		}
 
 	ngOnInit(){
 		//Se rellena los campos al formulario 
 		this.form_buscar = this.formBuilder.group({
 			miembroID: ['', Validators.required]
 		})
+		this.puesto=localStorage.getItem('puesto');
+	}
+
+	redireccion_menu(){
+		this.router.navigate(['']);
 	}
 
 	asig_hijo_a_padre($event){

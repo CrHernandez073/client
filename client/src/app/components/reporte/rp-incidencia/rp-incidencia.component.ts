@@ -6,7 +6,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { autoTable as AutoTable } from 'jspdf-autotable';
 import { ExcelService } from '../../../excel.service';
@@ -21,7 +21,12 @@ export class RpIncidenciaComponent implements OnInit {
   data: any;
   nombre: any;
 
-  constructor(private http: HttpClient, private formBuilder: FormBuilder, private excelService: ExcelService) {
+  constructor(
+    private http: HttpClient, 
+    private formBuilder: FormBuilder, 
+    private excelService: ExcelService, 
+    private router: Router
+    ) {
   }
   //busqueda
   informe: any;
@@ -32,6 +37,14 @@ export class RpIncidenciaComponent implements OnInit {
 
   //validacion
   submit_agregar = false;
+
+  httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem('miembroID'),
+			'Authorization': localStorage.getItem('Authorization')
+		})
+	};
 
   url = "https://api-remota.conveyor.cloud/api/";
 
@@ -194,11 +207,15 @@ export class RpIncidenciaComponent implements OnInit {
       + '&RFechaincidencia2='+ this.form_report.value.fechaincidencia2
       + '&Rareaactividad='+ this.form_report.value.area_actividad
       + '&Rtipoproblema='+ this.form_report.value.tipoproblema
-      + '&Rsede='+this.form_report.value.sede
+      + '&Rsede='+this.form_report.value.sede,this.httpOptions
     );
 
     response.subscribe((data: any[]) => {
       this.informe = data;
+      if (this.informe == "Sesión invalida") {          
+        this.router.navigate(['/login']);
+        return;
+       }
       this.contador= data.length;
     },
       error => {
