@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient , HttpHeaders, HttpResponse} from '@angular/common/http';
+import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 import { DatePipe } from '@angular/common';
 
@@ -10,6 +11,14 @@ import { DatePipe } from '@angular/common';
 })
 export class HistorialIncidenciasComponent implements OnInit {
 	url = "https://api-remota.conveyor.cloud/api/";
+
+	httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem("miembroID"),
+			'Authorization': localStorage.getItem("Authorization")
+		})
+	};
 
 	//Todo para el alert
 	visible : boolean = false;
@@ -29,7 +38,8 @@ export class HistorialIncidenciasComponent implements OnInit {
 
 	constructor(
 		private http : HttpClient,
-		private formBuilder: FormBuilder
+		private formBuilder: FormBuilder,
+		private router: Router
 		){}
 
 	ngOnInit() {
@@ -57,9 +67,14 @@ export class HistorialIncidenciasComponent implements OnInit {
 	get f2(){ return this.form_guardar.controls;}
 
 	obtener_historial(){
-		var response = this.http.get(this.url + "historial_incidencias");
-		response.subscribe((resultado : [])=> {
-			resultado.length > 0 ?  this.historial = resultado.reverse() : this.mostrar_alert("No hay nada que mostrar", "info");
+		var response = this.http.get(this.url + "historial_incidencias", this.httpOptions);
+		response.subscribe((resultado : any)=> {
+			if(resultado == "Sesión invalida"){
+				document.getElementById("cerrar_modal").click();	
+				this.router.navigate(['/login'])
+			} 
+			
+			resultado.length > 0 ?  this.historial = resultado : this.mostrar_alert("No hay nada que mostrar", "info");
 		},
 		error =>{
 			this.mostrar_alert("Error al consultar, intentalo mas tarde.", "warning");
@@ -76,9 +91,9 @@ export class HistorialIncidenciasComponent implements OnInit {
 		
 		setTimeout(() => { 
 			if (tipo=="success") {
-			this.closeAddExpenseModal.nativeElement.click();
-			this.obtener_historial();
-		}
+				this.closeAddExpenseModal.nativeElement.click();
+				this.obtener_historial();
+			}
 			this.cerrar_alert();
 		}, this.duracion
 		);
@@ -104,8 +119,13 @@ export class HistorialIncidenciasComponent implements OnInit {
 		if (miembroID == "") 
 			return;
 
-		var response = this.http.get(this.url + controlador+ "?id=" + miembroID);
+		var response = this.http.get(this.url + controlador+ "?id=" + miembroID, this.httpOptions);
 		response.subscribe((resultado : any)=> {
+			if(resultado == "Sesión invalida"){
+				document.getElementById("cerrar_modal").click();	
+				this.router.navigate(['/login'])
+			} 
+
 			this.form_guardar.patchValue(resultado);
 		},
 		error =>{
@@ -121,12 +141,14 @@ export class HistorialIncidenciasComponent implements OnInit {
 		else {
 			var resp = confirm("¿Deseas continuar?");
 			if (resp) {
-				this.http.put(this.url + "Incidencia1/" + this.form_guardar.value.no_incidencia, this.form_guardar.value).subscribe(data  => {
-					//spinner.setAttribute("hidden", "true");
+				this.http.put(this.url + "Incidencia1/" + this.form_guardar.value.no_incidencia, this.form_guardar.value, this.httpOptions).subscribe(data  => {
+					if(data == "Sesión invalida"){
+						document.getElementById("cerrar_modal").click();	
+						this.router.navigate(['/login'])
+					} 
+					
 					this.form_guardar.enable();
-
 					this.mostrar_alert("Se ha guardado correctamente", "success");
-
 				},
 				error  => {
 					//spinner.setAttribute("hidden", "true");

@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient , HttpHeaders, HttpResponse} from '@angular/common/http';
+import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 import { DatePipe } from '@angular/common';
 
@@ -10,6 +11,13 @@ import { DatePipe } from '@angular/common';
 })
 export class BuscarServicioComponent implements OnInit {
 	url = "https://api-remota.conveyor.cloud/api/";
+	httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem("miembroID"),
+			'Authorization': localStorage.getItem("Authorization")
+		})
+	};
 
 	//Todo para el alert
 	visible : boolean = false;
@@ -33,7 +41,8 @@ export class BuscarServicioComponent implements OnInit {
 
 	constructor(
 		private http : HttpClient,
-		private formBuilder: FormBuilder
+		private formBuilder: FormBuilder,
+		private router: Router
 		){}
 
 	ngOnInit() {
@@ -89,9 +98,10 @@ export class BuscarServicioComponent implements OnInit {
 		var sede = (<HTMLInputElement>document.getElementById("busq_sede"));
 		var nombre = (<HTMLInputElement>document.getElementById("busq_nombre"));
 
-		var response = this.http.get(this.url + "historial_staff?sede="+sede.value+"&nombre="+nombre.value);
-		response.subscribe((resultado : [])=> {
-			resultado.length > 0 ? this.comparar_nombre(resultado, nombre.value) : this.mostrar_alert("No hay nada que mostrar", "info");
+		var response = this.http.get(this.url + "historial_staff?sede="+sede.value+"&nombre="+nombre.value, this.httpOptions);
+		response.subscribe((resultado : any)=> {
+			if(resultado == "Sesión invalida") this.router.navigate(['/login'])
+				resultado.length > 0 ? this.comparar_nombre(resultado, nombre.value) : this.mostrar_alert("No hay nada que mostrar", "info");
 		},
 		error =>{
 			this.mostrar_alert("Error al consultar, intentalo mas tarde.", "warning");
@@ -176,7 +186,12 @@ export class BuscarServicioComponent implements OnInit {
 					sede: this.form_guardar.value.sede
 				}
 
-				this.http.put(this.url + "miembro/" + this.form_guardar.value.miembroID, this.datos_miembro).subscribe(data  => {
+				this.http.put(this.url + "miembro/" + this.form_guardar.value.miembroID, this.datos_miembro, this.httpOptions).subscribe(data  => {
+					if(data == "Sesión invalida"){
+						this.router.navigate(['/login'])
+						document.getElementById("cerrar_modal").click();	
+						return;	
+					} 
 					this.form_guardar.enable();
 					this.mostrar_alert("Se ha guardado correctamente", "success");
 
@@ -187,8 +202,12 @@ export class BuscarServicioComponent implements OnInit {
 					this.mostrar_alert("Ocurrió un error al modificar los datos, vuelve a intentarlo", "danger");
 				});
 
-				this.http.put(this.url + "staff/" + this.form_guardar.value.idStaff, this.form_guardar.value).subscribe(data  => {
-					this.form_guardar.enable();
+				this.http.put(this.url + "staff/" + this.form_guardar.value.idStaff, this.form_guardar.value, this.httpOptions).subscribe(data  => {
+					if(data == "Sesión invalida"){ 
+						this.router.navigate(['/login'])
+						return;
+					}
+						this.form_guardar.enable();
 					this.mostrar_alert("Se ha guardado correctamente", "success");
 
 				},

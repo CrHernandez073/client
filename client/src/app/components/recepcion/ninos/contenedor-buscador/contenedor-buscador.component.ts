@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient , HttpHeaders, HttpResponse} from '@angular/common/http';
+import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 import { DatePipe } from '@angular/common';
 
@@ -10,6 +11,13 @@ import { DatePipe } from '@angular/common';
 })
 export class ContenedorBuscadorComponent implements OnInit {
 	url = "https://api-remota.conveyor.cloud/api/";
+	httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem("miembroID"),
+			'Authorization': localStorage.getItem("Authorization")
+		})
+	};
 
 	//Todo para el alert
 	visible : boolean = false;
@@ -27,7 +35,8 @@ export class ContenedorBuscadorComponent implements OnInit {
 
 	constructor(
 		private http : HttpClient,
-		private formBuilder: FormBuilder
+		private formBuilder: FormBuilder,
+		private router: Router
 		){}
 
 	ngOnInit() {
@@ -44,8 +53,9 @@ export class ContenedorBuscadorComponent implements OnInit {
 			return;
 		}
 		this.buscando = true
-		var response = this.http.get(this.url + "datos_nino?key=" + this.form_buscar.value.campo_busqueda);
-		response.subscribe((resultado : [])=> {
+		var response = this.http.get(this.url + "datos_nino?key=" + this.form_buscar.value.campo_busqueda, this.httpOptions);
+		response.subscribe((resultado : any)=> {
+			if(resultado == "Sesión invalida") this.router.navigate(['/login'])
 			this.resultado_info = resultado;
 
 		},

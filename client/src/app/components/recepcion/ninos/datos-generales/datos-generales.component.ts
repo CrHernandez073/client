@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild, OnChanges, SimpleChanges } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient , HttpHeaders, HttpResponse} from '@angular/common/http';
+import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { Subject, Observable } from 'rxjs';
 
@@ -22,9 +23,17 @@ export class DatosGeneralesComponent  implements OnInit, OnChanges {
 	@Input('agregar_o_modificar') agregar_o_modificar: any; 
 	@Input() prop2!:any;
 
-	 $ : any;
+	$ : any;
 
 	url = "https://api-remota.conveyor.cloud/api/";
+	httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem("miembroID"),
+			'Authorization': localStorage.getItem("Authorization")
+		})
+	};
+
 	miembros : any; datos_miembro : any; aux_datos : any;
 	foto : any;
 
@@ -48,6 +57,7 @@ export class DatosGeneralesComponent  implements OnInit, OnChanges {
 		private http : HttpClient, 
 		private sanitazor: DomSanitizer,
 		private formBuilder: FormBuilder,
+		private router: Router
 		) { 
 	}
 
@@ -100,8 +110,7 @@ export class DatosGeneralesComponent  implements OnInit, OnChanges {
 		.then((mediaDevices: MediaDeviceInfo[]) => {
 			this.multipleWebcamsAvailable = mediaDevices && mediaDevices.length > 1;
 		});
-		var datepipe  = new DatePipe("en-US");
-		this.form_guardar.get("fechainscripcion").setValue(datepipe.transform(this.fecha, 'yyyy-MM-dd'))
+		this.fecha_actual();
 	}
 
 	ngOnChanges(changes: SimpleChanges){
@@ -121,9 +130,18 @@ export class DatosGeneralesComponent  implements OnInit, OnChanges {
 			this.cerrar_alert();
 		}
 
-		if(this.agregar_o_modificar == "nuevo"){
+		if(this.agregar_o_modificar == "nuevo" && this.form_guardar != undefined){
 			document.getElementById("btn_modal_info").click();
+			this.form_guardar.get("estado").setValue(true);
+			this.fecha_actual();
 		}
+	}
+
+	fecha_actual(){
+		var hoy = new Date();
+		var fech = hoy.getFullYear() + '-' + (hoy.getMonth() + 1) + '-' + hoy.getDate();
+
+		this.form_guardar.get("fechainscripcion").setValue(fech);
 	}
 
 	get f2(){ return this.form_guardar.controls;}
@@ -175,9 +193,12 @@ export class DatosGeneralesComponent  implements OnInit, OnChanges {
 
 	//Obtiene el último miembroID de la tabla miembros
 	obtener_ultimo_miembro(){
-		var response = this.http.get(this.url + "ultimoMiembro");
-		response.subscribe((resultado : number)=> {
-
+		var response = this.http.get(this.url + "ultimoMiembro", this.httpOptions);
+		response.subscribe((resultado : any)=> {
+			if(resultado == "Sesión invalida"){
+				this.router.navigate(['/login'])
+				return;
+			}
 			//Selecciona valores por defecto de estos campos
 			this.form_guardar.get('estado').setValue(true);
 			this.form_guardar.get('visa').setValue(false);
@@ -205,7 +226,11 @@ export class DatosGeneralesComponent  implements OnInit, OnChanges {
 			sede: this.form_guardar.value.sede
 		}
 
-		this.http.post(this.url + 'miembro', this.datos_miembro).subscribe(data  => {
+		this.http.post(this.url + 'miembro', this.datos_miembro, this.httpOptions).subscribe(data  => {
+			if(data == "Sesión invalida"){
+				this.router.navigate(['/login'])
+				return;
+			}
 			this.porcentaje_actual = 20;
 			this.porcentaje_sumar = 100/10;
 
@@ -245,8 +270,9 @@ export class DatosGeneralesComponent  implements OnInit, OnChanges {
 			sede: this.form_guardar.value.sede
 		}
 
-		this.http.put(this.url + "miembro/" + this.form_guardar.value.miembroID, this.datos_miembro).subscribe(data  => {
-			console.log("Miembro actualizado, guardando datos generales ...");
+		this.http.put(this.url + "miembro/" + this.form_guardar.value.miembroID, this.datos_miembro, this.httpOptions).subscribe(data  => {
+			if(data == "Sesión invalida") this.router.navigate(['/login'])
+				console.log("Miembro actualizado, guardando datos generales ...");
 		},
 		error  => {
 			this.mostrar_alert("Ocurrió un error al guardar los datos, vuelve a intentarlo", "danger", 5000, null);
@@ -254,8 +280,9 @@ export class DatosGeneralesComponent  implements OnInit, OnChanges {
 		});
 
 		
-		this.http.put(this.url + "Nino_DG1/" + this.form_guardar.value.miembroID, this.form_guardar.value).subscribe(data  => {
-			spinner.setAttribute("hidden", "true");
+		this.http.put(this.url + "Nino_DG1/" + this.form_guardar.value.miembroID, this.form_guardar.value, this.httpOptions).subscribe(data  => {
+			if(data == "Sesión invalida") this.router.navigate(['/login'])
+				spinner.setAttribute("hidden", "true");
 			this.porcentaje_actual = 100;
 			
 			window.scroll(0,0);
@@ -281,8 +308,10 @@ export class DatosGeneralesComponent  implements OnInit, OnChanges {
 		
 		var datos_aux = JSON.parse('{"'+columnaID+'":'+valorID+', "miembroID":'+valorID+'}');
 
-		this.http.post(this.url + tabla, datos_aux).subscribe(data  => {
-			console.log("Se han guardado: " + tabla);
+		this.http.post(this.url + tabla, datos_aux, this.httpOptions).subscribe(data  => {
+			if(data == "Sesión invalida") this.router.navigate(['/login'])
+
+				console.log("Se han guardado: " + tabla);
 			this.porcentaje_actual += this.porcentaje_sumar;;
 		},
 		error  => {

@@ -1,7 +1,7 @@
 import { Component, OnInit,Input, Output } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import { HttpClient , HttpHeaders, HttpResponse} from '@angular/common/http';
 import { Router } from '@angular/router';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 
 @Component({
 	selector: 'contenedor-ninos',
@@ -10,6 +10,13 @@ import { Router } from '@angular/router';
 })
 export class ContenedorNinosComponent implements OnInit {
 	url = "https://api-remota.conveyor.cloud/api/";
+	httpOptions = {
+	headers: new HttpHeaders({
+		'Content-Type':  'application/json',
+		'miembroID': localStorage.getItem("miembroID"),
+		'Authorization': localStorage.getItem("Authorization")
+	})
+};
 
 	//Variables globales
 	global: any = undefined;
@@ -104,8 +111,10 @@ export class ContenedorNinosComponent implements OnInit {
 			this.global = undefined;
 			this.buscando = true;
 
-			var response = this.http.get(this.url + "Miembro/" + this.form_buscar.value.miembroID);
-			response.subscribe((resultado : any[])=> {
+			var response = this.http.get(this.url + "Miembro/" + this.form_buscar.value.miembroID, this.httpOptions);
+			response.subscribe((resultado : any)=> {
+				if(resultado == "Sesión invalida") this.router.navigate(['/login'])
+					
 				this.global = resultado;
 				
 				spinner_buscar.setAttribute("hidden", "true");
