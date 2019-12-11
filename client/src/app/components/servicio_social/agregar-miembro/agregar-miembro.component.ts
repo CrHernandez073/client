@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter,ViewChild,OnChanges, SimpleChanges } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient , HttpHeaders, HttpResponse} from '@angular/common/http';
+import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 
@@ -10,6 +11,13 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 })
 export class AgregarMiembroComponent implements OnInit {
 	url = "https://api-remota.conveyor.cloud/api/";
+	httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem("miembroID"),
+			'Authorization': localStorage.getItem("Authorization")
+		})
+	};
 
 	//Todo para el alert
 	visible : boolean = false;
@@ -31,7 +39,8 @@ export class AgregarMiembroComponent implements OnInit {
 
 	constructor(
 		private http : HttpClient,
-		private formBuilder: FormBuilder
+		private formBuilder: FormBuilder,
+		private router: Router
 		){}
 
 	ngOnInit() {
@@ -92,8 +101,10 @@ export class AgregarMiembroComponent implements OnInit {
 
 	//Obtener nuevo miembro MÉTODO AUXILIAR
 	obtener_ultimo_miembro(){
-		var response = this.http.get(this.url + "ultimoMiembro");
-		response.subscribe((resultado : number)=> {
+		var response = this.http.get(this.url + "ultimoMiembro", this.httpOptions);
+		response.subscribe((resultado : any)=> {
+			if(resultado == "Sesión invalida") this.router.navigate(['/login'])
+
 			this.form_guardar.get('idStaff').setValue(resultado + 1);
 			this.form_guardar.get('miembroID').setValue(resultado + 1);
 
@@ -119,7 +130,8 @@ export class AgregarMiembroComponent implements OnInit {
 			sede: this.form_guardar.value.sede
 		}
 
-		this.http.post(this.url + 'miembro', this.datos_miembro).subscribe(data  => {
+		this.http.post(this.url + 'miembro', this.datos_miembro, this.httpOptions).subscribe(data  => {
+			if(data == "Sesión invalida") this.router.navigate(['/login'])
 			console.log("Se ha guardado el miembro")
 			this.guardar_en_staff()
 		},
@@ -133,7 +145,8 @@ export class AgregarMiembroComponent implements OnInit {
 
 	guardar_en_staff(){
 		window.scroll(0,0);
-		this.http.post(this.url + 'staff', this.form_guardar.value).subscribe(data  => {
+		this.http.post(this.url + 'staff', this.form_guardar.value, this.httpOptions).subscribe(data  => {
+			if(data == "Sesión invalida") this.router.navigate(['/login'])
 			this.mostrar_alert("Se ha guardado " + this.form_guardar.value.nombre + ", su número de miembro es: " + this.form_guardar.value.miembroID, 'success');
 		},
 		error  => {

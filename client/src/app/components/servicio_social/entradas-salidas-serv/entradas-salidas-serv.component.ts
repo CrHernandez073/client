@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient , HttpHeaders, HttpResponse} from '@angular/common/http';
+import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 
 @Component({
@@ -11,6 +12,13 @@ export class EntradasSalidasServComponent implements OnInit {
 	historial : any;
 
 	url = "https://api-remota.conveyor.cloud/api/";
+	httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem("miembroID"),
+			'Authorization': localStorage.getItem("Authorization")
+		})
+	};
 
 	//Todo para el alert
 	visible : boolean = false;
@@ -26,7 +34,8 @@ export class EntradasSalidasServComponent implements OnInit {
 	submited : boolean = true;
 
 	constructor(
-		private http : HttpClient
+		private http : HttpClient,
+		private router: Router
 		){}
 
 	ngOnInit() {
@@ -46,10 +55,11 @@ export class EntradasSalidasServComponent implements OnInit {
 			this.limpiar();
 			return;
 		}
-		var response = this.http.get(this.url + "esta_activo_staff?id=" + miembroID.value);
+		var response = this.http.get(this.url + "esta_activo_staff?id=" + miembroID.value, this.httpOptions);
 
-		response.subscribe((resultado : number)=> {
+		response.subscribe((resultado : any)=> {
 			//Resultado = 1 signifuca que si está activo, Resultado = 0 significa que no está activo
+			if(resultado == "Sesión invalida") this.router.navigate(['/login'])
 			resultado > 0 ? this.ya_registro_entrada(miembroID.value) : this.mostrar_alert("Verifica el número de miembro", "danger");
 		},
 		error =>{
@@ -58,8 +68,9 @@ export class EntradasSalidasServComponent implements OnInit {
 	}
 
 	ya_registro_entrada(miembroID : any){
-		var response = this.http.get(this.url + "ya_registro_entrada_staff?id=" + miembroID);
+		var response = this.http.get(this.url + "ya_registro_entrada_staff?id=" + miembroID, this.httpOptions);
 		response.subscribe((resultado : any)=> {
+			if(resultado == "Sesión invalida") this.router.navigate(['/login'])
 			//No ha registrado su entrada ? "crear entrada" SINO "guardar salida"
 			resultado[0] == undefined ? this.obtener_ultima_entrada() : this.salida(resultado[0].idRegistroentrada, resultado[0].miembroID, resultado[0].fechaentrada);
 		},
@@ -70,8 +81,9 @@ export class EntradasSalidasServComponent implements OnInit {
 
 	//Obtener nuevo miembro MÉTODO AUXILIAR
 	obtener_ultima_entrada(){
-		var response = this.http.get(this.url + "ultima_entrada_staff");
-		response.subscribe((idUltimaEntrada : number)=> {
+		var response = this.http.get(this.url + "ultima_entrada_staff", this.httpOptions);
+		response.subscribe((idUltimaEntrada : any)=> {
+			if(idUltimaEntrada == "Sesión invalida") this.router.navigate(['/login'])
 			
 			//Registrará la nueva entrada
 			this.entrada(idUltimaEntrada + 1);
@@ -93,7 +105,8 @@ export class EntradasSalidasServComponent implements OnInit {
 			miembroID : miembroID.value
 		}
 
-		this.http.post(this.url + 'RegistroEntradasStaffs', this.datos_check).subscribe(data  => {
+		this.http.post(this.url + 'RegistroEntradasStaffs', this.datos_check, this.httpOptions).subscribe(data  => {
+			if(data == "Sesión invalida") this.router.navigate(['/login'])
 			spinner_guardar.setAttribute("hidden", "true");
 			this.mostrar_alert("Se ha guardado la entrada", "success")
 			this.limpiar();
@@ -118,7 +131,8 @@ export class EntradasSalidasServComponent implements OnInit {
 			fechasalida : null,
 		}
 
-		this.http.put(this.url + "RegistroEntradasStaffs/" + id, this.datos_check).subscribe(data  => {
+		this.http.put(this.url + "RegistroEntradasStaffs/" + id, this.datos_check, this.httpOptions).subscribe(data  => {
+			if(data == "Sesión invalida") this.router.navigate(['/login'])
 			spinner_guardar.setAttribute("hidden", "true");
 			this.mostrar_alert("Se ha guardado la salida", "success")	
 			this.limpiar();
@@ -161,10 +175,11 @@ export class EntradasSalidasServComponent implements OnInit {
 		var spinner_historial = document.getElementById("spinner_historial");
 		spinner_historial.removeAttribute("hidden");
 
-		var response = this.http.get(this.url + "RegistroEntradaSalidaStaff?id=" + miembroID.value);
-		response.subscribe((resultado : [])=> {
+		var response = this.http.get(this.url + "RegistroEntradaSalidaStaff?id=" + miembroID.value, this.httpOptions);
+		response.subscribe((resultado : any)=> {
+			if(resultado == "Sesión invalida") this.router.navigate(['/login'])
 			spinner_historial.setAttribute("hidden", "true");
-			resultado.length > 0 ?  this.calcular_num_horas(resultado.reverse()) : this.mostrar_alert("No hay nada que mostrar", "info");
+			resultado.length > 0 ?  this.calcular_num_horas(resultado) : this.mostrar_alert("No hay nada que mostrar", "info");
 		},
 		error =>{
 			spinner_historial.setAttribute("hidden", "true");

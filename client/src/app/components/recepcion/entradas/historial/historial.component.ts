@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient , HttpHeaders, HttpResponse} from '@angular/common/http';
+import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms' 
 
 @Component({
@@ -9,6 +10,13 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 })
 export class HistorialComponent implements OnInit {
 	url = "https://api-remota.conveyor.cloud/api/";
+	httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem("miembroID"),
+			'Authorization': localStorage.getItem("Authorization")
+		})
+	};
 
 	//Todo para el alert
 	visible : boolean = false;
@@ -28,7 +36,8 @@ export class HistorialComponent implements OnInit {
 
 	constructor(
 		private http : HttpClient, 
-		private formBuilder: FormBuilder
+		private formBuilder: FormBuilder,
+		private router: Router
 		) { }
 
 	ngOnInit() {
@@ -42,9 +51,11 @@ export class HistorialComponent implements OnInit {
 	obtener_historial(){
 		this.limpiar(false);
 
-		var response = this.http.get(this.url + "historial?id=" + this.form_buscar.value.miembroID);
-		response.subscribe((resultado : [])=> {
-			resultado.length > 0 ?  this.historial = resultado.reverse() : this.mostrar_alert("No hay nada que mostrar", "info");
+		var response = this.http.get(this.url + "historial?id=" + this.form_buscar.value.miembroID, this.httpOptions);
+		response.subscribe((resultado : any)=> {
+			if(resultado == "Sesión invalida") this.router.navigate(['/login'])
+
+			resultado.length > 0 ?  this.historial = resultado : this.mostrar_alert("No hay nada que mostrar", "info");
 		},
 		error =>{
 			this.mostrar_alert("Verifica el número de miembro", "warning");

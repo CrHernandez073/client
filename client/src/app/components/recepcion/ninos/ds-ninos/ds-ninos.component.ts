@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter,ViewChild, OnChanges, SimpleChanges } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient , HttpHeaders, HttpResponse} from '@angular/common/http';
+import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
 
@@ -13,6 +14,13 @@ export class DsNinosComponent implements OnInit, OnChanges {
 	@Input() prop!:any;
 
 	url = "https://api-remota.conveyor.cloud/api/";
+	httpOptions = {
+		headers: new HttpHeaders({
+			'Content-Type':  'application/json',
+			'miembroID': localStorage.getItem("miembroID"),
+			'Authorization': localStorage.getItem("Authorization")
+		})
+	};
 
 	//Todo para el alert
 	visible : boolean = false;
@@ -27,7 +35,8 @@ export class DsNinosComponent implements OnInit, OnChanges {
 
 	constructor(
 		private http : HttpClient,
-		private formBuilder: FormBuilder
+		private formBuilder: FormBuilder,
+		private router: Router
 		){}
 
 	ngOnInit() {
@@ -118,7 +127,8 @@ export class DsNinosComponent implements OnInit, OnChanges {
 				this.guardando = true;
 				spinner.removeAttribute("hidden");
 
-				this.http.put(this.url + "Nino_ES/" + this.form_guardar.value.miembroID, this.form_guardar.value).subscribe(data  => {
+				this.http.put(this.url + "Nino_ES/" + this.form_guardar.value.miembroID, this.form_guardar.value, this.httpOptions).subscribe(data  => {
+					if(data == "Sesión invalida") this.router.navigate(['/login'])
 					spinner.setAttribute("hidden", "true");
 					this.form_guardar.enable();
 					window.scroll(0,0);
